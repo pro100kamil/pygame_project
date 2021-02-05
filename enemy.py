@@ -26,14 +26,14 @@ def cut_sheet(filename, rows, cols, anim_delay):
 
 
 def load_image(name, color_key=None):
+    """Загрузка изображения"""
     fullname = os.path.join('data', name)
-    try:
-        image = pygame.image.load(fullname)
-    except pygame.error as message:
-        print('Cannot load image:', name)
-        raise SystemExit(message)
-
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        raise SystemExit(f"Файл с изображением '{fullname}' не найден")
+    image = pygame.image.load(fullname)
     if color_key is not None:
+        image = image.convert()
         if color_key == -1:
             color_key = image.get_at((0, 0))
         image.set_colorkey(color_key)
@@ -43,7 +43,8 @@ def load_image(name, color_key=None):
 
 
 def load_level(filename):
-    filename = "data/" + filename
+    """Загрузка уровня"""
+    filename = os.path.join('data', filename)
 
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
