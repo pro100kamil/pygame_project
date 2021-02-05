@@ -110,6 +110,7 @@ class NinjaFrog(BaseHero):
                               True, False), 1, 12, anim_delay=100))
     stay_anim = pyganim.PygAnimation(cut_image(
         load_image('Ninja Frog/Idle (32x32).png'), 1, 11, anim_delay=100))
+
     left_anim.play()
     right_anim.play()
     stay_anim.play()
@@ -122,6 +123,7 @@ class NinjaFrog(BaseHero):
         self.direction = "right"
         self.speed = speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
+        self.height_jump = 15
 
     def collide(self):
         lst = pygame.sprite.spritecollide(self, platforms, False)
@@ -148,18 +150,8 @@ class NinjaFrog(BaseHero):
 
         self.collide()
 
-        if self.on_ground:
-            if self.jump:
-                self.y_vel = -self.jump
-                self.on_ground = False
-            NinjaFrog.stay_anim.blit(self.image, (0, 0))
-
         if not self.on_ground:
             self.y_vel += GRAVITY
-            if self.y_vel > 0:
-                NinjaFrog.fall_anim.blit(self.image, (0, 0))
-            else:
-                NinjaFrog.jump_anim.blit(self.image, (0, 0))
 
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
             self.x_vel = self.speed
@@ -175,14 +167,14 @@ class NinjaFrog(BaseHero):
                 self.direction = "left"
                 NinjaFrog.stay_anim.flip(True, False)
             NinjaFrog.right_anim.blit(self.image, (0, 0))
-        elif pygame.key.get_pressed()[pygame.K_DOWN]:
-            self.jump = 0
-
-            NinjaFrog.fall_anim.blit(self.image, (0, 0))
         elif pygame.key.get_pressed()[pygame.K_UP]:
-            self.jump = 10
+            if self.on_ground:
+                self.on_ground = False
+                self.y_vel = -self.height_jump
 
             NinjaFrog.jump_anim.blit(self.image, (0, 0))
+        elif pygame.key.get_pressed()[pygame.K_DOWN]:
+            pass
         elif pygame.key.get_pressed()[pygame.K_RETURN]:
             NinjaFrog.hit_anim.blit(self.image, (0, 0))
         else:
