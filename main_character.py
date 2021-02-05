@@ -119,44 +119,50 @@ class NinjaFrog(BaseHero):
         self.direction = "right"
         self.speed = speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
-        self.height_jump = 15
+        self.height_jump = 10
 
     def flip(self):
+        """Разворот всех анимаций спрайтов"""
         NinjaFrog.stay_anim.flip(True, False)
         NinjaFrog.run_anim.flip(True, False)
         NinjaFrog.jump_anim.flip(True, False)
+        NinjaFrog.fall_anim.flip(True, False)
         NinjaFrog.hit_anim.flip(True, False)
 
     def collide(self):
-        lst = pygame.sprite.spritecollide(self, platforms, False)
-        # if not lst and self.on_ground:
-        #     self.on_ground = False
-        #     self.y_vel = 10
-        for platform in lst:
-            if self.y_vel > 0:
-                self.on_ground = True
-                self.jump = False
-                self.rect.bottom = platform.rect.top
-                self.y_vel = 0
-            elif self.y_vel < 0:
-                self.rect.top = platform.rect.bottom
-                self.y_vel = 0
+        self.rect.x += self.x_vel
+        for platform in pygame.sprite.spritecollide(self, platforms, False):
             if self.x_vel < 0:
                 self.rect.left = platform.rect.right
                 self.x_vel = 0
             elif self.x_vel > 0:
                 self.rect.right = platform.rect.left
                 self.x_vel = 0
-        if self.x_vel:
-            self.x_vel = 0
+        self.x_vel = 0
+
+        self.rect.y += self.y_vel
+        for platform in pygame.sprite.spritecollide(self, platforms, False):
+            if self.y_vel > 0:
+                self.on_ground = True
+                self.jump = False
+                self.rect.bottom = platform.rect.top
+            elif self.y_vel < 0:
+                self.rect.top = platform.rect.bottom
+            self.y_vel = 0
 
     def update(self):
         super().update()
 
-        self.collide()
+        # флаг, нужна ли ещё анимация в текущем обновлении
+        flag_anim = True  # нужно, чтобы не было двойной анимации
 
         if not self.on_ground:
             self.y_vel += GRAVITY
+        else:
+            self.y_vel = 1
+            self.on_ground = False
+
+        self.collide()
 
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
             self.x_vel = self.speed
@@ -165,24 +171,34 @@ class NinjaFrog(BaseHero):
                 self.direction = "right"
                 self.flip()
             NinjaFrog.run_anim.blit(self.image, (0, 0))
-        elif pygame.key.get_pressed()[pygame.K_LEFT]:
+            flag_anim = False
+        if pygame.key.get_pressed()[pygame.K_LEFT]:
             self.x_vel = -self.speed
 
             if self.direction == "right":
                 self.direction = "left"
                 self.flip()
-            NinjaFrog.run_anim.blit(self.image, (0, 0))
-        elif pygame.key.get_pressed()[pygame.K_UP]:
+            if flag_anim:
+                NinjaFrog.run_anim.blit(self.image, (0, 0))
+                flag_anim = False
+        if pygame.key.get_pressed()[pygame.K_UP]:
             if self.on_ground:
                 self.on_ground = False
                 self.y_vel = -self.height_jump
-
-            NinjaFrog.jump_anim.blit(self.image, (0, 0))
-        elif pygame.key.get_pressed()[pygame.K_DOWN]:
-            pass
-        elif pygame.key.get_pressed()[pygame.K_RETURN]:
-            NinjaFrog.hit_anim.blit(self.image, (0, 0))
-        else:
+            if flag_anim:
+                NinjaFrog.jump_anim.blit(self.image, (0, 0))
+                flag_anim = False
+        if pygame.key.get_pressed()[pygame.K_DOWN]:
+            self.y_vel = 2 * self.height_jump
+            if flag_anim:
+                NinjaFrog.fall_anim.blit(self.image, (0, 0))
+                flag_anim = False
+        if pygame.key.get_pressed()[pygame.K_RETURN]:
+            if flag_anim:
+                NinjaFrog.hit_anim.blit(self.image, (0, 0))
+                flag_anim = False
+        # if not any(pygame.key.get_pressed()):  # все клавиши не нажаты
+        if flag_anim:
             NinjaFrog.stay_anim.blit(self.image, (0, 0))
 
 
