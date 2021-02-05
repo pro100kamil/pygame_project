@@ -3,7 +3,7 @@ import os
 import pyganim
 
 TILE_SIDE = 50
-SIZE = WIDTH, HEIGHT = 1050, 750
+SIZE = WIDTH, HEIGHT = 750, 750
 FPS = 30
 GRAVITY = 10 / FPS
 
@@ -85,7 +85,7 @@ class BaseHero(pygame.sprite.Sprite):
         self.on_ground = False
 
     def update(self):
-        self.rect = self.rect.move(self.x_vel, self.y_vel)
+        # self.rect = self.rect.move(self.x_vel, self.y_vel)
 
         self.image.fill('black')
         self.image.set_colorkey('black')
@@ -103,16 +103,12 @@ class NinjaFrog(BaseHero):
         load_image('Ninja Frog/Jump (32x32).png'), 1, 1, anim_delay=100))
     fall_anim = pyganim.PygAnimation(cut_image(
         load_image('Ninja Frog/Fall (32x32).png'), 1, 1, anim_delay=100))
-    left_anim = pyganim.PygAnimation(cut_image(
+    run_anim = pyganim.PygAnimation(cut_image(
         load_image('Ninja Frog/Run (32x32).png'), 1, 12, anim_delay=100))
-    right_anim = pyganim.PygAnimation(cut_image(
-        pygame.transform.flip(load_image('Ninja Frog/Run (32x32).png'),
-                              True, False), 1, 12, anim_delay=100))
     stay_anim = pyganim.PygAnimation(cut_image(
         load_image('Ninja Frog/Idle (32x32).png'), 1, 11, anim_delay=100))
 
-    left_anim.play()
-    right_anim.play()
+    run_anim.play()
     stay_anim.play()
     jump_anim.play()
     fall_anim.play()
@@ -125,8 +121,17 @@ class NinjaFrog(BaseHero):
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
         self.height_jump = 15
 
+    def flip(self):
+        NinjaFrog.stay_anim.flip(True, False)
+        NinjaFrog.run_anim.flip(True, False)
+        NinjaFrog.jump_anim.flip(True, False)
+        NinjaFrog.hit_anim.flip(True, False)
+
     def collide(self):
         lst = pygame.sprite.spritecollide(self, platforms, False)
+        # if not lst and self.on_ground:
+        #     self.on_ground = False
+        #     self.y_vel = 10
         for platform in lst:
             if self.y_vel > 0:
                 self.on_ground = True
@@ -158,15 +163,15 @@ class NinjaFrog(BaseHero):
 
             if self.direction == "left":
                 self.direction = "right"
-                NinjaFrog.stay_anim.flip(True, False)
-            NinjaFrog.left_anim.blit(self.image, (0, 0))
+                self.flip()
+            NinjaFrog.run_anim.blit(self.image, (0, 0))
         elif pygame.key.get_pressed()[pygame.K_LEFT]:
             self.x_vel = -self.speed
 
             if self.direction == "right":
                 self.direction = "left"
-                NinjaFrog.stay_anim.flip(True, False)
-            NinjaFrog.right_anim.blit(self.image, (0, 0))
+                self.flip()
+            NinjaFrog.run_anim.blit(self.image, (0, 0))
         elif pygame.key.get_pressed()[pygame.K_UP]:
             if self.on_ground:
                 self.on_ground = False
