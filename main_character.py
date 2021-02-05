@@ -64,12 +64,16 @@ def load_level(filename):
 
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
+    new_player, x, y = None, None, None
     for y, row in enumerate(level_map):
         for x, elem in enumerate(row):
             if elem == '-':
                 Platform(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '@':
-                NinjaFrog(x * TILE_SIDE - 18, y * TILE_SIDE + 18, 5)
+                new_player = NinjaFrog(x * TILE_SIDE - 18,
+                                       y * TILE_SIDE + 18, 5)
+
+    return new_player, x, y
 
 
 class BaseHero(pygame.sprite.Sprite):
@@ -85,8 +89,6 @@ class BaseHero(pygame.sprite.Sprite):
         self.on_ground = False
 
     def update(self):
-        # self.rect = self.rect.move(self.x_vel, self.y_vel)
-
         self.image.fill('black')
         self.image.set_colorkey('black')
 
@@ -215,18 +217,45 @@ class Platform(pygame.sprite.Sprite):
         self.rect.x, self.rect.y = x, y
 
 
+class Camera:
+    # зададим начальный сдвиг камеры
+    def __init__(self, field_size):
+        self.dx = 0
+        self.dy = 0
+        self.field_size = field_size
+
+    # сдвинуть объект obj на смещение камеры
+    def apply(self, obj):
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
+
+    # позиционировать камеру на объекте target
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
+
+
 if __name__ == "__main__":
     running = True
     clock = pygame.time.Clock()
 
     all_sprites = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
-    load_level('map.txt')
+
+    player, level_x, level_y = load_level('map.txt')
+
+    camera = Camera((level_x, level_y))
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+        # изменяем ракурс камеры
+        camera.update(player)
+        # обновляем положение всех спрайтов
+        for sprite in all_sprites:
+            camera.apply(sprite)
 
         screen.fill(pygame.Color("light blue"))
         all_sprites.update()
