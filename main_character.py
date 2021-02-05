@@ -118,7 +118,7 @@ class NinjaFrog(BaseHero):
         super().__init__(x, y, NinjaFrog.width, NinjaFrog.height)
         self.direction = "right"
         self.speed = speed
-        self.jump, self.x_vel, self.y_vel = 0, 0, 0
+        self.x_vel, self.y_vel = 0, 0
         self.height_jump = 10
 
     def flip(self):
@@ -144,7 +144,6 @@ class NinjaFrog(BaseHero):
         for platform in pygame.sprite.spritecollide(self, platforms, False):
             if self.y_vel > 0:
                 self.on_ground = True
-                self.jump = False
                 self.rect.bottom = platform.rect.top
             elif self.y_vel < 0:
                 self.rect.top = platform.rect.bottom
@@ -158,11 +157,15 @@ class NinjaFrog(BaseHero):
 
         if not self.on_ground:
             self.y_vel += GRAVITY
-        else:
-            self.y_vel = 1
-            self.on_ground = False
+        # else:
+        #     self.y_vel = 1
+        #     self.on_ground = False
 
         self.collide()
+
+        if not pygame.key.get_pressed()[pygame.K_RETURN]:  # сброс анимации удара
+            NinjaFrog.hit_anim.stop()
+            NinjaFrog.hit_anim.play()
 
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
             self.x_vel = self.speed
