@@ -86,42 +86,42 @@ class BaseHero(pygame.sprite.Sprite):
 class NinjaFrog(BaseHero):
     width, height = 32, 32
 
-    hit_anim = pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Hit (32x32).png', 1, 7, anim_delay=100))
-    jump_anim = pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Jump (32x32).png', 1, 1, anim_delay=100))
-    double_jump_anim = pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Double Jump (32x32).png', 1, 6, anim_delay=100))
-    fall_anim = pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Fall (32x32).png', 1, 1, anim_delay=100))
-    run_anim = pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Run (32x32).png', 1, 12, anim_delay=100))
-    stay_anim = pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Idle (32x32).png', 1, 11, anim_delay=100))
+    animations = {'hit': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Hit (32x32).png', 1, 7, anim_delay=100)),
 
-    run_anim.play()
-    stay_anim.play()
-    jump_anim.play()
-    double_jump_anim.play()
-    fall_anim.play()
-    hit_anim.play()
+        'jump': pyganim.PygAnimation(cut_sheet(
+            'Ninja Frog/Jump (32x32).png', 1, 1, anim_delay=100)),
+
+        'double_jump': pyganim.PygAnimation(cut_sheet(
+            'Ninja Frog/Double Jump (32x32).png', 1, 6, anim_delay=100)),
+
+        'fall': pyganim.PygAnimation(cut_sheet(
+            'Ninja Frog/Fall (32x32).png', 1, 1, anim_delay=100)),
+
+        'run': pyganim.PygAnimation(cut_sheet(
+            'Ninja Frog/Run (32x32).png', 1, 12, anim_delay=100)),
+
+        'stay': pyganim.PygAnimation(cut_sheet(
+            'Ninja Frog/Idle (32x32).png', 1, 11, anim_delay=100))
+    }
+
+    for anim in animations.values():
+        anim.play()
 
     def __init__(self, x, y, speed):
         super().__init__(x, y, NinjaFrog.width, NinjaFrog.height)
         self.direction = "right"
         self.speed = speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
-        self.height_jump = 10
-        self.atack = True
-        self.double_jump = False
+        self.height_jump = 10  # показатель высоты прыжка
+        self.attack = False  # происходит ли сейчас атака
+        self.double_jump = False  # происходит ли сейчас двойной прыжок
+        self.health = 100
 
     def flip(self):
         """Разворот всех анимаций спрайтов"""
-        NinjaFrog.stay_anim.flip(True, False)
-        NinjaFrog.run_anim.flip(True, False)
-        NinjaFrog.jump_anim.flip(True, False)
-        NinjaFrog.fall_anim.flip(True, False)
-        NinjaFrog.hit_anim.flip(True, False)
+        for anim in NinjaFrog.animations.values():
+            anim.flip(True, False)
 
     def collide(self):
         """Обработка столкновений с платформами"""
@@ -147,6 +147,11 @@ class NinjaFrog(BaseHero):
     def update(self):
         super().update()
 
+        if not self.health:  # герой повержен
+            self.rect.y += 5
+            NinjaFrog.animations['stay'].blit(self.image, (0, 0))
+            return
+
         # флаг, нужна ли ещё анимация в текущем обновлении
         flag_anim = True  # нужно, чтобы не было двойной анимации
 
@@ -157,20 +162,20 @@ class NinjaFrog(BaseHero):
             self.on_ground = False
 
         self.collide()
-        if self.atack:
-            NinjaFrog.hit_anim.blit(self.image, (0, 0))
+        if self.attack:
+            NinjaFrog.animations['hit'].blit(self.image, (0, 0))
             flag_anim = False
-            if NinjaFrog.hit_anim.currentFrameNum == \
-                    NinjaFrog.hit_anim.numFrames - 1:
-                self.atack = False
-                NinjaFrog.hit_anim.stop()
+            if NinjaFrog.animations['hit'].currentFrameNum == \
+                    NinjaFrog.animations['hit'].numFrames - 1:
+                self.attack = False
+                NinjaFrog.animations['hit'].stop()
         if self.double_jump:
-            NinjaFrog.double_jump_anim.blit(self.image, (0, 0))
+            NinjaFrog.animations['double_jump'].blit(self.image, (0, 0))
             flag_anim = False
-            if NinjaFrog.double_jump_anim.currentFrameNum == \
-                    NinjaFrog.double_jump_anim.numFrames - 1:
+            if NinjaFrog.animations['double_jump'].currentFrameNum == \
+                    NinjaFrog.animations['double_jump'].numFrames - 1:
                 self.double_jump = False
-                NinjaFrog.double_jump_anim.stop()
+                NinjaFrog.animations['double_jump'].stop()
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
             self.x_vel = self.speed
 
@@ -178,7 +183,7 @@ class NinjaFrog(BaseHero):
                 self.direction = "right"
                 self.flip()
             if flag_anim:
-                NinjaFrog.run_anim.blit(self.image, (0, 0))
+                NinjaFrog.animations['run'].blit(self.image, (0, 0))
                 flag_anim = False
         if pygame.key.get_pressed()[pygame.K_LEFT]:
             self.x_vel = -self.speed
@@ -187,7 +192,7 @@ class NinjaFrog(BaseHero):
                 self.direction = "left"
                 self.flip()
             if flag_anim:
-                NinjaFrog.run_anim.blit(self.image, (0, 0))
+                NinjaFrog.animations['run'].blit(self.image, (0, 0))
                 flag_anim = False
         if flag_anim:  # нет передвижения по оси x
             self.x_vel = 0
@@ -196,30 +201,34 @@ class NinjaFrog(BaseHero):
                 self.on_ground = False
                 self.y_vel = -self.height_jump
             if flag_anim:
-                NinjaFrog.jump_anim.blit(self.image, (0, 0))
+                NinjaFrog.animations['jump'].blit(self.image, (0, 0))
                 flag_anim = False
         if pygame.key.get_pressed()[pygame.K_DOWN]:
             self.y_vel = 2 * self.height_jump
             if flag_anim:
-                NinjaFrog.fall_anim.blit(self.image, (0, 0))
+                NinjaFrog.animations['fall'].blit(self.image, (0, 0))
                 flag_anim = False
         if pygame.key.get_pressed()[pygame.K_RETURN] and not self.double_jump:
-            self.atack = True
-            NinjaFrog.hit_anim.play()
+            self.attack = True
+            NinjaFrog.animations['hit'].play()
             if flag_anim:
-                NinjaFrog.hit_anim.blit(self.image, (0, 0))
+                NinjaFrog.animations['hit'].blit(self.image, (0, 0))
                 flag_anim = False
-        if pygame.key.get_pressed()[pygame.K_SPACE] and not self.atack:
+        if pygame.key.get_pressed()[pygame.K_SPACE] and not self.attack \
+                and not pygame.key.get_pressed()[pygame.K_DOWN]:
             if self.on_ground:
                 self.on_ground = False
                 self.y_vel = -1.4 * self.height_jump
                 self.double_jump = True
-                NinjaFrog.double_jump_anim.play()
+                NinjaFrog.animations['double_jump'].play()
                 if flag_anim:
-                    NinjaFrog.double_jump_anim.blit(self.image, (0, 0))
+                    NinjaFrog.animations['double_jump'].blit(self.image, (0, 0))
                     flag_anim = False
+        if pygame.key.get_pressed()[pygame.K_f]:
+            self.health = 0
+            NinjaFrog.animations['stay'].flip(False, True)
         if flag_anim:  # все клавиши не нажаты
-            NinjaFrog.stay_anim.blit(self.image, (0, 0))
+            NinjaFrog.animations['stay'].blit(self.image, (0, 0))
 
 
 class Platform(pygame.sprite.Sprite):
@@ -266,11 +275,12 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
 
-        # изменяем ракурс камеры
-        camera.update(player)
-        # обновляем положение всех спрайтов
-        for sprite in all_sprites:
-            camera.apply(sprite)
+        if player.health:
+            # изменяем ракурс камеры
+            camera.update(player)
+            # обновляем положение всех спрайтов
+            for sprite in all_sprites:
+                camera.apply(sprite)
 
         screen.fill(pygame.Color("light blue"))
         all_sprites.update()
