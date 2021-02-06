@@ -60,7 +60,7 @@ def load_level(filename):
                 new_player = NinjaFrog(x * TILE_SIDE - 18,
                                        y * TILE_SIDE + 18, 5)
 
-    return new_player, x, y
+    return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
 
 class BaseHero(pygame.sprite.Sprite):
@@ -287,9 +287,7 @@ if __name__ == "__main__":
         all_sprites.update()
 
         if player.health:
-            # изменяем ракурс камеры
             camera.update(player)
-
             for sprite in all_sprites:
                 screen.blit(sprite.image, camera.apply(sprite))
 
