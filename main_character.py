@@ -60,7 +60,7 @@ def load_level(filename):
                 new_player = NinjaFrog(x * TILE_SIDE - 18,
                                        y * TILE_SIDE + 18, 5)
 
-    return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
+    return new_player, x, y
 
 
 class BaseHero(pygame.sprite.Sprite):
@@ -245,27 +245,18 @@ class Platform(pygame.sprite.Sprite):
 
 
 class Camera:
-    def __init__(self, width, height):
-        self.view = pygame.Rect(0, 0, width, height)
+    def __init__(self):
+        self.dx, self.dy = 0, 0
 
     def apply(self, obj):
         """Сдвинуть объект obj на смещение камеры"""
-        return obj.rect.move(self.view.topleft)
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
 
     def update(self, target):
         """Позиционировать камеру на объекте target"""
-        self.view = self.set_camera(target)
-
-    def set_camera(self, target):
-        left, top, _, _ = target.rect
-        _, _, width, height = self.view
-
-        left, top = WIDTH / 2 - left, HEIGHT / 2 - top
-
-        left = max(WIDTH - width, min(0, left))
-        top = min(0, max(HEIGHT - height, top))
-
-        return pygame.Rect(left, top, width, height)
+        self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
 
 
 if __name__ == "__main__":
@@ -277,22 +268,23 @@ if __name__ == "__main__":
 
     player, level_x, level_y = load_level('map.txt')
 
-    camera = Camera(level_x, level_y)
+    camera = Camera()
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        screen.fill(pygame.Color("light blue"))
-        all_sprites.update()
-
         if player.health:
             # изменяем ракурс камеры
             camera.update(player)
             # обновляем положение всех спрайтов
             for sprite in all_sprites:
-                screen.blit(sprite.image, camera.apply(sprite))
+                camera.apply(sprite)
+
+        screen.fill(pygame.Color("light blue"))
+        all_sprites.update()
+        all_sprites.draw(screen)
 
         pygame.display.flip()
         clock.tick(FPS)
