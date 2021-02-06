@@ -244,6 +244,7 @@ class Platform(pygame.sprite.Sprite):
         self.rect.x, self.rect.y = x, y
 
 
+
 class Camera:
     def __init__(self, width, height):
         self.view = pygame.Rect(0, 0, width, height)
@@ -252,7 +253,7 @@ class Camera:
         return sprite.rect.move(self.view.topleft)
 
     def update(self, target):
-        self.view = self
+        self.view = self.set_camera(target)
 
     def set_camera(self, target):
         left, top, _, _ = target.rect
@@ -264,7 +265,6 @@ class Camera:
         top = min(0, max(HEIGHT - height, top))
 
         return pygame.Rect(left, top, width, height)
-
 
 
 if __name__ == "__main__":
@@ -283,16 +283,15 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
 
+        screen.fill(pygame.Color("light blue"))
+        all_sprites.update()
+
         if player.health:
             # изменяем ракурс камеры
             camera.update(player)
-            # обновляем положение всех спрайтов
+
             for sprite in all_sprites:
                 screen.blit(sprite.image, camera.apply(sprite))
-
-        screen.fill(pygame.Color("light blue"))
-        all_sprites.update()
-        all_sprites.draw(screen)
 
         pygame.display.flip()
         clock.tick(FPS)
