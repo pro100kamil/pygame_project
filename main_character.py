@@ -121,10 +121,11 @@ class NinjaFrog(BaseHero):
         self.height_jump = 10  # показатель высоты прыжка
         self.attack = False  # происходит ли сейчас атака
         self.double_jump = False  # происходит ли сейчас двойной прыжок
+        self.got_hit = False
         self.health = 100
 
         # время последнего столкновения с шипами (мс)
-        self.last_collide_with_spikes = None
+        self.last_collide_with_spikes = pygame.time.get_ticks()
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -133,49 +134,52 @@ class NinjaFrog(BaseHero):
         for anim in NinjaFrog.animations.values():
             anim.flip(True, False)
 
-    def collide(self):
-        """Обработка столкновений с платформами, фруктами, шипами"""
+    def collide(self, x_vel, y_vel):
+        """Обработка столкновений с платформами, фруктами"""
+
         # Обработка столкновений с платформами
-        self.rect.x += self.x_vel
         for platform in pygame.sprite.spritecollide(self, platforms, False):
-            if self.x_vel < 0:
+            if x_vel < 0:
                 self.rect.left = platform.rect.right
                 self.x_vel = 0
-            elif self.x_vel > 0:
+            elif x_vel > 0:
                 self.rect.right = platform.rect.left
                 self.x_vel = 0
-
-        self.rect.y += self.y_vel
-        for platform in pygame.sprite.spritecollide(self, platforms, False):
-            if self.y_vel > 0:
+            elif y_vel > 0:
                 self.on_ground = True
                 self.jump = False
                 self.rect.bottom = platform.rect.top
-            elif self.y_vel < 0:
+                self.y_vel = 0
+            elif y_vel < 0:
                 self.rect.top = platform.rect.bottom
-            self.y_vel = 0
+                self.y_vel = 0
 
         # Обработка столкновений с фруктами (взятие фрукта)
-        for sprite in fruits_group:
-            if pygame.sprite.collide_mask(self, sprite):
-                self.health += sprite.health
+        for fruit in fruits_group:
+            fruit: Fruit
+            if pygame.sprite.collide_mask(self, fruit):
+                self.health += fruit.get_health()
                 print(self.health)  # для отладки
                 sprite.kill()  # удаляем спрайт
 
-        # Обработка столкновений с шипами (происходит каждые полсекунды)
-        if self.last_collide_with_spikes is None or \
-                pygame.time.get_ticks() - self.last_collide_with_spikes >= 500:
-            self.last_collide_with_spikes = pygame.time.get_ticks()
-            for sprite in spikes_group:
-                if pygame.sprite.collide_mask(self, sprite):
-                    self.health -= sprite.damage
-                    print(self.health)  # для отладки
-                    if self.health <= 0:
-                        self.defeat()
-                        break
+    def collide_with_spikes(self):
+        # Обработка столкновений с шипами
+        for spike in spikes_group:
+            spike: Spikes
+            if pygame.sprite.collide_mask(self, spike):
+                self.health -= spike.get_damage()
+                print(self.health)  # для отладки
+                if self.health <= 0:
+                    self.defeat()
+                    break
+
+                self.got_hit = pygame.time.get_ticks()  # Время последнего удара
+
+                # Изменение векторов скоростей в соответствии со старыми
+                self.x_vel = 0 if self.x_vel == 0 else (-5 if self.x_vel > 0 else 5)
+                self.y_vel = 0 if self.y_vel == 0 else (-8 if self.y_vel > 0 else 8)
 
     def update(self):
-
         super().update()
 
         if not self.health:  # герой повержен
@@ -192,10 +196,23 @@ class NinjaFrog(BaseHero):
             self.y_vel = 1
             self.on_ground = False
 
-        self.collide()
+        self.collide_with_spikes()  # Проверка на столкновение с шипами
 
-        # Сброс анимации, когда гг ударили
-        if not pygame.key.get_pressed()[pygame.K_RETURN]:
+        # Вынес по отдельности проверку на столкновение для каждой координаты, потому что
+        # метод collide не должен изменять координаты, он лишь меняет вектор скорости
+        self.rect.x += self.x_vel
+        self.collide(self.x_vel, 0)  # По-отдельности определяем вектор скорости по x
+
+        self.rect.y += self.y_vel
+        self.collide(0, self.y_vel)  # По-отдельности определяем вектор скорости по y
+
+        # Если игрок попал на шипы, то на протяжении 700 мс проигрывается анимация
+        if self.got_hit and pygame.time.get_ticks() - self.got_hit < 700:
+            NinjaFrog.animations['hit'].play()
+            NinjaFrog.animations['hit'].blit(self.image, (0, 0))
+            return
+        else:
+            self.got_hit = False  # Анимация прошла
             NinjaFrog.animations['hit'].stop()
 
         if self.double_jump:
@@ -310,9 +327,12 @@ class Spikes(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
-
+        self.mask = pygame.mask.from_surface(self.image)
         # урон, который получит персонаж, если ударится о шипы
         self.damage = 30
+
+    def get_damage(self):
+        return self.damage
 
 
 class Fruit(pygame.sprite.Sprite):
@@ -342,6 +362,9 @@ class Fruit(pygame.sprite.Sprite):
         self.image.set_colorkey('black')
 
         self.anim.blit(self.image, (0, 0))
+
+    def get_health(self):
+        return self.health
 
 
 class Camera:
