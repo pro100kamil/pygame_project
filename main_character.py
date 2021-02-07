@@ -150,6 +150,7 @@ class NinjaFrog(BaseHero):
                 self.jump = False
                 self.rect.bottom = platform.rect.top
                 self.y_vel = 0
+                self.x_vel = 0
             elif y_vel < 0:
                 self.rect.top = platform.rect.bottom
                 self.y_vel = 0
@@ -157,7 +158,7 @@ class NinjaFrog(BaseHero):
         # Обработка столкновений с фруктами (взятие фрукта)
         for fruit in fruits_group:
             fruit: Fruit
-            if pygame.sprite.collide_mask(self, fruit):
+            if not fruit.get_collect() and pygame.sprite.collide_mask(self, fruit):
                 self.health += fruit.get_health()
                 print(self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
@@ -176,8 +177,14 @@ class NinjaFrog(BaseHero):
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
 
                 # Изменение векторов скоростей в соответствии со старыми
-                self.x_vel = 0 if self.x_vel == 0 else (-5 if self.x_vel > 0 else 5)
-                self.y_vel = 0 if self.y_vel == 0 else (-8 if self.y_vel > 0 else 8)
+                if self.x_vel == 0 and self.y_vel > 0:
+                    self.x_vel = 0
+                elif self.direction == 'right':
+                    self.x_vel = -5
+                elif self.direction == 'right':
+                    self.x_vel = 5
+
+                self.y_vel = -5
 
     def update(self):
         super().update()
@@ -373,6 +380,9 @@ class Fruit(pygame.sprite.Sprite):
 
         self.collected = True
         self.anim_collected.play()
+
+    def get_collect(self):
+        return self.collected
 
     def get_health(self):
         return self.health
