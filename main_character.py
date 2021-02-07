@@ -1,4 +1,5 @@
 import os
+from random import choice
 import pygame
 import pyganim
 
@@ -58,6 +59,8 @@ def load_level(filename):
                 Platform(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '.':
                 Spikes(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == '*':
+                Fruit(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '@':
                 new_player = NinjaFrog(x * TILE_SIDE - 18,
                                        y * TILE_SIDE + 18, 5)
@@ -131,7 +134,8 @@ class NinjaFrog(BaseHero):
             anim.flip(True, False)
 
     def collide(self):
-        """Обработка столкновений с платформами и с шипами"""
+        """Обработка столкновений с платформами, фруктами, шипами"""
+        # Обработка столкновений с платформами
         self.rect.x += self.x_vel
         for platform in pygame.sprite.spritecollide(self, platforms, False):
             if self.x_vel < 0:
@@ -151,6 +155,13 @@ class NinjaFrog(BaseHero):
                 self.rect.top = platform.rect.bottom
             self.y_vel = 0
 
+        # Обработка столкновений с фруктами (взятие фрукта)
+        for sprite in fruits_group:
+            if pygame.sprite.collide_mask(self, sprite):
+                self.health += sprite.health
+                print(self.health)  # для отладки
+                sprite.kill()  # удаляем спрайт
+
         # Обработка столкновений с шипами (происходит каждые полсекунды)
         if self.last_collide_with_spikes is None or \
                 pygame.time.get_ticks() - self.last_collide_with_spikes >= 500:
@@ -158,7 +169,7 @@ class NinjaFrog(BaseHero):
             for sprite in spikes_group:
                 if pygame.sprite.collide_mask(self, sprite):
                     self.health -= sprite.damage
-                    print(self.health)
+                    print(self.health)  # для отладки
                     if self.health <= 0:
                         self.defeat()
                         break
@@ -301,7 +312,36 @@ class Spikes(pygame.sprite.Sprite):
         self.rect.x, self.rect.y = x, y
 
         # урон, который получит персонаж, если ударится о шипы
-        self.damage = 20
+        self.damage = 30
+
+
+class Fruit(pygame.sprite.Sprite):
+    """Фрукты (прибавляют игроку жизни)"""
+
+    width, height = 32, 32
+
+    fruits = ['Apple', 'Bananas', 'Cherries', 'Melon',
+              'Kiwi', 'Pineapple', 'Strawberry', 'Orange']
+
+    def __init__(self, x, y):
+        super().__init__(fruits_group, all_sprites)
+
+        self.rect = pygame.Rect(x, y, Fruit.width, Fruit.height)
+        self.image = pygame.Surface((Fruit.width, Fruit.height))
+
+        # каждый раз случайный фрукт
+        self.anim = pyganim.PygAnimation(cut_sheet(
+            f'Fruits/{choice(Fruit.fruits)}.png', 1, 17, anim_delay=100))
+        self.anim.play()
+
+        # кол-во жизней, которое получит герой, если возьмёт фрукт
+        self.health = 10
+
+    def update(self):
+        self.image.fill('black')
+        self.image.set_colorkey('black')
+
+        self.anim.blit(self.image, (0, 0))
 
 
 class Camera:
@@ -332,7 +372,9 @@ if __name__ == "__main__":
     running = True
     clock = pygame.time.Clock()
 
+    # группы спрайтов
     all_sprites = pygame.sprite.Group()
+    fruits_group = pygame.sprite.Group()
     spikes_group = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
 
