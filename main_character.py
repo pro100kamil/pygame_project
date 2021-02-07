@@ -1,5 +1,5 @@
-import pygame
 import os
+import pygame
 import pyganim
 
 TILE_SIDE = 50
@@ -56,6 +56,8 @@ def load_level(filename):
         for x, elem in enumerate(row):
             if elem == '-':
                 Platform(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == '.':
+                Spikes(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '@':
                 new_player = NinjaFrog(x * TILE_SIDE - 18,
                                        y * TILE_SIDE + 18, 5)
@@ -118,13 +120,18 @@ class NinjaFrog(BaseHero):
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.health = 100
 
+        # время последнего столкновения с шипами (мс)
+        self.last_collide_with_spikes = None
+
+        self.mask = pygame.mask.from_surface(self.image)
+
     def flip(self):
         """Разворот всех анимаций спрайтов"""
         for anim in NinjaFrog.animations.values():
             anim.flip(True, False)
 
     def collide(self):
-        """Обработка столкновений с платформами"""
+        """Обработка столкновений с платформами и с шипами"""
         self.rect.x += self.x_vel
         for platform in pygame.sprite.spritecollide(self, platforms, False):
             if self.x_vel < 0:
@@ -144,13 +151,19 @@ class NinjaFrog(BaseHero):
                 self.rect.top = platform.rect.bottom
             self.y_vel = 0
 
+        # Обработка столкновений с шипами (происходит каждые полсекунды)
+        if self.last_collide_with_spikes is None or \
+                pygame.time.get_ticks() - self.last_collide_with_spikes >= 500:
+            self.last_collide_with_spikes = pygame.time.get_ticks()
+            for sprite in spikes_group:
+                if pygame.sprite.collide_mask(self, sprite):
+                    self.health -= sprite.damage
+                    print(self.health)
+                    if self.health <= 0:
+                        self.defeat()
+                        break
+
     def update(self):
-        # space = pygame.key.get_pressed()[pygame.K_SPACE]
-        # down = pygame.key.get_pressed()[pygame.K_DOWN]
-        # up = pygame.key.get_pressed()[pygame.K_UP]
-        # left = pygame.key.get_pressed()[pygame.K_LEFT]
-        # right = pygame.key.get_pressed()[pygame.K_RIGHT]
-        # enter = pygame.key.get_pressed()[pygame.K_RETURN]
 
         super().update()
 
@@ -190,7 +203,7 @@ class NinjaFrog(BaseHero):
                 NinjaFrog.animations['run'].blit(self.image, (0, 0))
                 flag_anim = False
 
-        if pygame.key.get_pressed()[pygame.K_LEFT]:
+        elif pygame.key.get_pressed()[pygame.K_LEFT]:
             self.x_vel = -self.speed
 
             if self.direction == "right":
@@ -234,12 +247,12 @@ class NinjaFrog(BaseHero):
                 self.double_jump = True
                 NinjaFrog.animations['double_jump'].play()
                 if flag_anim:
-                    NinjaFrog.animations['double_jump'].blit(self.image, (0, 0))
+                    NinjaFrog.animations['double_jump'].blit(self.image,
+                                                             (0, 0))
                     flag_anim = False
 
         if pygame.key.get_pressed()[pygame.K_f]:
-            self.health = 0
-            NinjaFrog.animations['stay'].flip(False, True)
+            self.defeat()
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
@@ -252,9 +265,15 @@ class NinjaFrog(BaseHero):
             else:
                 NinjaFrog.animations['jump'].blit(self.image, (0, 0))
 
+    def defeat(self):
+        """Поражение героя"""
+        self.health = 0  # чтобы здоровье не было отрицательным
+        NinjaFrog.animations['stay'].flip(False, True)
 
 
 class Platform(pygame.sprite.Sprite):
+    """Платформы"""
+
     def __init__(self, x, y):
         super().__init__(platforms, all_sprites)
 
@@ -267,15 +286,34 @@ class Platform(pygame.sprite.Sprite):
         self.rect.x, self.rect.y = x, y
 
 
+class Spikes(pygame.sprite.Sprite):
+    """Шипы"""
+
+    def __init__(self, x, y):
+        super().__init__(spikes_group, all_sprites)
+
+        self.image = pygame.transform.scale(load_image('spikes.png'),
+                                            (TILE_SIDE, TILE_SIDE))
+
+        self.width, self.height = self.image.get_size()
+
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = x, y
+
+        # урон, который получит персонаж, если ударится о шипы
+        self.damage = 20
+
 
 class Camera:
     def __init__(self, width, height):
         self.view = pygame.Rect(0, 0, width, height)
 
-    def apply(self, sprite):
-        return sprite.rect.move(self.view.topleft)
+    def apply(self, obj):
+        """Сдвинуть объект obj на смещение камеры"""
+        return obj.rect.move(self.view.topleft)
 
     def update(self, target):
+        """Позиционировать камеру на объекте target"""
         self.view = self.set_camera(target)
 
     def set_camera(self, target):
@@ -295,6 +333,7 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
 
     all_sprites = pygame.sprite.Group()
+    spikes_group = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
 
     player, level_x, level_y = load_level('map.txt')
@@ -310,7 +349,7 @@ if __name__ == "__main__":
         all_sprites.update()
 
         if player.health:
-            # изменяем ракурс
+            # изменяем ракурс камеры
             camera.update(player)
         # обновляем положение всех спрайтов
         for sprite in all_sprites:
