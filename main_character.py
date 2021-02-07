@@ -1,47 +1,15 @@
 import os
 from random import choice
+
 import pygame
 import pyganim
+
+from constants import *
+from functions import *
+from some_classes import *
 from weapon import Shuriken
 
-TILE_SIDE = 50
-SIZE = WIDTH, HEIGHT = 750, 750
-FPS = 30
-GRAVITY = 10 / FPS
-
 pygame.init()
-screen = pygame.display.set_mode(SIZE)
-
-
-def cut_sheet(filename, rows, cols, anim_delay):
-    sheet: pygame.Surface = load_image(filename)
-    picture_w, picture_h = sheet.get_width() // cols, sheet.get_height() // rows
-    frames = []
-    for y in range(rows):
-        for x in range(cols):
-            frame_location = (picture_w * x, picture_h * y)
-            frames.append((sheet.subsurface(frame_location,
-                                            (picture_w, picture_h)),
-                           anim_delay))
-
-    return frames
-
-
-def load_image(name, color_key=None):
-    """Загрузка изображения"""
-    fullname = os.path.join('data', name)
-    # если файл не существует, то выходим
-    if not os.path.isfile(fullname):
-        raise SystemExit(f"Файл с изображением '{fullname}' не найден")
-    image = pygame.image.load(fullname)
-    if color_key is not None:
-        image = image.convert()
-        if color_key == -1:
-            color_key = image.get_at((0, 0))
-        image.set_colorkey(color_key)
-    else:
-        image = image.convert_alpha()
-    return image
 
 
 def load_level(filename):
@@ -120,7 +88,6 @@ class NinjaFrog(BaseHero):
         self.speed = speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
         self.height_jump = 10  # показатель высоты прыжка
-        self.attack = False  # происходит ли сейчас атака
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.got_hit = False
         self.health = 100
@@ -151,6 +118,7 @@ class NinjaFrog(BaseHero):
                 self.jump = False
                 self.rect.bottom = platform.rect.top
                 self.y_vel = 0
+                self.x_vel = 0
             elif y_vel < 0:
                 self.rect.top = platform.rect.bottom
                 self.y_vel = 0
@@ -158,7 +126,8 @@ class NinjaFrog(BaseHero):
         # Обработка столкновений с фруктами (взятие фрукта)
         for fruit in fruits_group:
             fruit: Fruit
-            if pygame.sprite.collide_mask(self, fruit) and not fruit.collected:
+            if not fruit.is_collected() and pygame.sprite.collide_mask(self,
+                                                                       fruit):
                 self.health += fruit.get_health()
                 print(self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
@@ -177,8 +146,14 @@ class NinjaFrog(BaseHero):
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
 
                 # Изменение векторов скоростей в соответствии со старыми
-                self.x_vel = 0 if self.x_vel == 0 else (-5 if self.x_vel > 0 else 5)
-                self.y_vel = 0 if self.y_vel == 0 else (-8 if self.y_vel > 0 else 8)
+                if self.x_vel == 0 and self.y_vel > 0:
+                    self.x_vel = 0
+                elif self.direction == 'right':
+                    self.x_vel = -5
+                elif self.direction == 'right':
+                    self.x_vel = 5
+
+                self.y_vel = -5
 
     def update(self):
         super().update()
@@ -200,7 +175,7 @@ class NinjaFrog(BaseHero):
         self.collide_with_spikes()  # Проверка на столкновение с шипами
 
         self.rect.x += self.x_vel
-        self.collide(self.x_vel, 0)  # По-отдельности определяем вектор скорости по x
+        self.collide(self.x_vel, 0)
 
         self.rect.y += self.y_vel
         self.collide(0, self.y_vel)
@@ -276,7 +251,7 @@ class NinjaFrog(BaseHero):
             self.defeat()
 
         # if pygame.key.get_pressed()[pygame.K_RETURN]:
-            # Shuriken(self.rect.top, self.rect.right).move()
+        #     self.attack()
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
@@ -289,131 +264,21 @@ class NinjaFrog(BaseHero):
             else:
                 NinjaFrog.animations['jump'].blit(self.image, (0, 0))
 
+    def attack(self):
+        """Атака героя"""
+        Shuriken(self.rect.right
+                 if self.direction == "right" else self.rect.left,
+                 self.rect.top, self.direction).move()
+
     def defeat(self):
         """Поражение героя"""
         self.health = 0  # чтобы здоровье не было отрицательным
         NinjaFrog.animations['stay'].flip(False, True)
 
 
-class Platform(pygame.sprite.Sprite):
-    """Платформы"""
-
-    def __init__(self, x, y):
-        super().__init__(platforms, all_sprites)
-
-        self.image = pygame.transform.scale(load_image('grass.png'),
-                                            (TILE_SIDE, TILE_SIDE))
-
-        self.width, self.height = self.image.get_size()
-
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
-
-
-class Spikes(pygame.sprite.Sprite):
-    """Шипы"""
-
-    def __init__(self, x, y):
-        super().__init__(spikes_group, all_sprites)
-
-        self.image = pygame.transform.scale(load_image('spikes.png'),
-                                            (TILE_SIDE, TILE_SIDE))
-
-        self.width, self.height = self.image.get_size()
-
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
-        self.mask = pygame.mask.from_surface(self.image)
-        # урон, который получит персонаж, если ударится о шипы
-        self.damage = 30
-
-    def get_damage(self):
-        return self.damage
-
-
-class Fruit(pygame.sprite.Sprite):
-    """Фрукты (прибавляют игроку жизни)"""
-
-    width, height = 32, 32
-
-    fruits = ['Apple', 'Bananas', 'Cherries', 'Melon',
-              'Kiwi', 'Pineapple', 'Strawberry', 'Orange']
-
-    def __init__(self, x, y):
-        super().__init__(fruits_group, all_sprites)
-
-        self.rect = pygame.Rect(x, y, Fruit.width, Fruit.height)
-        self.image = pygame.Surface((Fruit.width, Fruit.height))
-        self.collected = False
-
-        # каждый раз случайный фрукт
-        self.anim_normal = pyganim.PygAnimation(cut_sheet(
-            f'Fruits/{choice(Fruit.fruits)}.png', 1, 17, anim_delay=100))
-        self.anim_normal.play()
-
-        self.anim_collected = pyganim.PygAnimation(cut_sheet(
-            f'Fruits/Collected.png', 1, 6, anim_delay=100))
-
-        # кол-во жизней, которое получит герой, если возьмёт фрукт
-        self.health = 10
-
-    def update(self):
-        self.image.fill('black')
-        self.image.set_colorkey('black')
-
-        if not self.collected:  # Если не собран, обычная анимация
-            self.anim_normal.blit(self.image, (0, 0))
-        elif self.anim_collected.currentFrameNum == \
-                self.anim_collected.numFrames - 1:
-            # Если собран и анимация подходит к концу, спрайт удаляется
-            self.anim_collected.stop()
-            self.kill()
-        else:
-            self.anim_collected.blit(self.image, (0, 0))
-
-    def collect(self):
-        """Фрукт собран"""
-
-        self.collected = True
-        self.anim_collected.play()
-
-    def get_health(self):
-        return self.health
-
-
-class Camera:
-    def __init__(self, width, height):
-        self.view = pygame.Rect(0, 0, width, height)
-
-    def apply(self, obj):
-        """Сдвинуть объект obj на смещение камеры"""
-        return obj.rect.move(self.view.topleft)
-
-    def update(self, target):
-        """Позиционировать камеру на объекте target"""
-        self.view = self.set_camera(target)
-
-    def set_camera(self, target):
-        left, top, _, _ = target.rect
-        _, _, width, height = self.view
-
-        left, top = WIDTH / 2 - left, HEIGHT / 2 - top
-
-        left = max(WIDTH - width, min(0, left))
-        top = min(0, max(HEIGHT - height, top))
-
-        return pygame.Rect(left, top, width, height)
-
-
 if __name__ == "__main__":
     running = True
     clock = pygame.time.Clock()
-
-    # группы спрайтов
-    all_sprites = pygame.sprite.Group()
-    fruits_group = pygame.sprite.Group()
-    spikes_group = pygame.sprite.Group()
-    platforms = pygame.sprite.Group()
 
     player, level_x, level_y = load_level('map.txt')
 
@@ -423,6 +288,10 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                # через события, чтобы вылетал один сюрикен
+                if event.key == pygame.K_RETURN:
+                    player.attack()
 
         screen.fill(pygame.Color("light blue"))
         all_sprites.update()
