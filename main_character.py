@@ -260,13 +260,6 @@ class NinjaFrog(BaseHero):
                     NinjaFrog.animations['fall'].blit(self.image, (0, 0))
                     flag_anim = False
 
-        if pygame.key.get_pressed()[pygame.K_RETURN] and not self.double_jump:
-            self.attack = True
-            NinjaFrog.animations['hit'].play()
-            if flag_anim:
-                NinjaFrog.animations['hit'].blit(self.image, (0, 0))
-                flag_anim = False
-
         if pygame.key.get_pressed()[pygame.K_SPACE] \
                 and not pygame.key.get_pressed()[pygame.K_DOWN]:
             if self.on_ground:
