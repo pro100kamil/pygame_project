@@ -160,7 +160,7 @@ class NinjaFrog(BaseHero):
             if pygame.sprite.collide_mask(self, fruit):
                 self.health += fruit.get_health()
                 print(self.health)  # для отладки
-                sprite.kill()  # удаляем спрайт
+                fruit.collect()  # Собрать фрукт
 
     def collide_with_spikes(self):
         # Обработка столкновений с шипами
@@ -348,11 +348,15 @@ class Fruit(pygame.sprite.Sprite):
 
         self.rect = pygame.Rect(x, y, Fruit.width, Fruit.height)
         self.image = pygame.Surface((Fruit.width, Fruit.height))
+        self.collected = False
 
         # каждый раз случайный фрукт
-        self.anim = pyganim.PygAnimation(cut_sheet(
+        self.anim_normal = pyganim.PygAnimation(cut_sheet(
             f'Fruits/{choice(Fruit.fruits)}.png', 1, 17, anim_delay=100))
-        self.anim.play()
+        self.anim_normal.play()
+
+        self.anim_collected = pyganim.PygAnimation(cut_sheet(
+            f'Fruits/Collected.png', 1, 6, anim_delay=100))
 
         # кол-во жизней, которое получит герой, если возьмёт фрукт
         self.health = 10
@@ -361,7 +365,21 @@ class Fruit(pygame.sprite.Sprite):
         self.image.fill('black')
         self.image.set_colorkey('black')
 
-        self.anim.blit(self.image, (0, 0))
+        if not self.collected:  # Если не собран, обычная анимация
+            self.anim_normal.blit(self.image, (0, 0))
+        elif self.anim_collected.currentFrameNum == \
+                self.anim_collected.numFrames - 1:
+            # Если собран и анимация подходит к концу, спрайт удаляется
+            self.anim_collected.stop()
+            self.kill()
+        else:
+            self.anim_collected.blit(self.image, (0, 0))
+
+    def collect(self):
+        """Фрукт собран"""
+
+        self.collected = True
+        self.anim_collected.play()
 
     def get_health(self):
         return self.health
