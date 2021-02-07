@@ -2,6 +2,7 @@ import os
 from random import choice
 import pygame
 import pyganim
+from weapon import Shuriken
 
 TILE_SIDE = 50
 SIZE = WIDTH, HEIGHT = 750, 750
@@ -150,7 +151,6 @@ class NinjaFrog(BaseHero):
                 self.jump = False
                 self.rect.bottom = platform.rect.top
                 self.y_vel = 0
-                self.x_vel = 0
             elif y_vel < 0:
                 self.rect.top = platform.rect.bottom
                 self.y_vel = 0
@@ -158,7 +158,7 @@ class NinjaFrog(BaseHero):
         # Обработка столкновений с фруктами (взятие фрукта)
         for fruit in fruits_group:
             fruit: Fruit
-            if not fruit.get_collect() and pygame.sprite.collide_mask(self, fruit):
+            if pygame.sprite.collide_mask(self, fruit) and not fruit.collected:
                 self.health += fruit.get_health()
                 print(self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
@@ -177,14 +177,8 @@ class NinjaFrog(BaseHero):
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
 
                 # Изменение векторов скоростей в соответствии со старыми
-                if self.x_vel == 0 and self.y_vel > 0:
-                    self.x_vel = 0
-                elif self.direction == 'right':
-                    self.x_vel = -5
-                elif self.direction == 'right':
-                    self.x_vel = 5
-
-                self.y_vel = -5
+                self.x_vel = 0 if self.x_vel == 0 else (-5 if self.x_vel > 0 else 5)
+                self.y_vel = 0 if self.y_vel == 0 else (-8 if self.y_vel > 0 else 8)
 
     def update(self):
         super().update()
@@ -205,15 +199,14 @@ class NinjaFrog(BaseHero):
 
         self.collide_with_spikes()  # Проверка на столкновение с шипами
 
-        # Вынес по отдельности проверку на столкновение для каждой координаты, потому что
-        # метод collide не должен изменять координаты, он лишь меняет вектор скорости
         self.rect.x += self.x_vel
         self.collide(self.x_vel, 0)  # По-отдельности определяем вектор скорости по x
 
         self.rect.y += self.y_vel
-        self.collide(0, self.y_vel)  # По-отдельности определяем вектор скорости по y
+        self.collide(0, self.y_vel)
 
-        # Если игрок попал на шипы, то на протяжении 700 мс проигрывается анимация
+        # Если игрок попал на шипы,
+        # то на протяжении 700 мс проигрывается анимация
         if self.got_hit and pygame.time.get_ticks() - self.got_hit < 700:
             NinjaFrog.animations['hit'].play()
             NinjaFrog.animations['hit'].blit(self.image, (0, 0))
@@ -281,6 +274,9 @@ class NinjaFrog(BaseHero):
 
         if pygame.key.get_pressed()[pygame.K_f]:
             self.defeat()
+
+        # if pygame.key.get_pressed()[pygame.K_RETURN]:
+            # Shuriken(self.rect.top, self.rect.right).move()
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
@@ -380,9 +376,6 @@ class Fruit(pygame.sprite.Sprite):
 
         self.collected = True
         self.anim_collected.play()
-
-    def get_collect(self):
-        return self.collected
 
     def get_health(self):
         return self.health
