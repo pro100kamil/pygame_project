@@ -11,6 +11,20 @@ pygame.init()
 screen = pygame.display.set_mode(SIZE)
 
 
+def cut_sheet(filename, rows, cols, anim_delay):
+    sheet: pygame.Surface = load_image(filename)
+    picture_w, picture_h = sheet.get_width() // cols, sheet.get_height() // rows
+    frames = []
+    for y in range(rows):
+        for x in range(cols):
+            frame_location = (picture_w * x, picture_h * y)
+            frames.append((sheet.subsurface(frame_location,
+                                            (picture_w, picture_h)),
+                           anim_delay))
+
+    return frames
+
+
 def load_image(name, color_key=None):
     """Загрузка изображения"""
     fullname = os.path.join('data', name)
@@ -28,22 +42,28 @@ def load_image(name, color_key=None):
     return image
 
 
-class Shuricken(pygame.sprite.Sprite):
+class Shuriken(pygame.sprite.Sprite):
+
+    width, height = 25, 25
+
+    move_anim = pyganim.PygAnimation(
+        cut_sheet('move_shuriken.png', 1, 13, anim_delay=100))
+    move_anim.flip(True, False)
+    stay_anim = pyganim.PygAnimation(
+        cut_sheet('stay_shuriken.png', 1, 1, anim_delay=100))
+    move_anim.play()
+    stay_anim.play()
+
     def __init__(self, x, y,):
         super().__init__(all_sprites)
 
-        self.image = pygame.transform.scale(load_image('shuriken.png'),
-                                            (TILE_SIDE // 2, TILE_SIDE // 2))
-
-        self.width, self.height = self.image.get_size()
-
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
+        self.rect = pygame.Rect(x, y, Shuriken.width, Shuriken.height)
+        self.image = pygame.Surface((Shuriken.width, Shuriken.height))
 
         self.direction = "right"
-        self.delta = 20
         self.range_flight = 100  # дальность полёта
-        self.flown = 0  # уже пролетел
+        self.delta = self.range_flight / 26
+        self.flown = 0  # сколько сюрикен уже пролетел
         # урон, который получит персонаж, если в него попадёт сюрикен
         self.damage = 30
 
@@ -53,19 +73,29 @@ class Shuricken(pygame.sprite.Sprite):
         else:
             self.rect.x -= self.delta
         self.flown += self.delta
+        Shuriken.move_anim.blit(self.image, (0, 0))
 
     def update(self):
+        self.image.fill('black')
+        self.image.set_colorkey('black')
+
         if self.flown:
             if self.flown < self.range_flight:
                 self.move()
             else:  # полёт закончен
                 self.flown = 0
+        else:
+            self.stay_anim.blit(self.image, (0, 0))
         if pygame.key.get_pressed()[pygame.K_RETURN]:
             self.move()
         if pygame.key.get_pressed()[pygame.K_LEFT]:
-            self.direction = "left"
+            if self.direction == "right":
+                self.direction = "left"
+                Shuriken.move_anim.flip(True, False)
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
-            self.direction = "right"
+            if self.direction == "left":
+                self.direction = "right"
+                Shuriken.move_anim.flip(True, False)
 
 
 if __name__ == "__main__":
@@ -75,7 +105,7 @@ if __name__ == "__main__":
     # группы спрайтов
     all_sprites = pygame.sprite.Group()
 
-    Shuricken(100, 200)
+    Shuriken(100, 200)
 
     while running:
         for event in pygame.event.get():
