@@ -110,7 +110,6 @@ class NinjaFrog(BaseHero):
 
     def collide(self, x_vel, y_vel):
         """Обработка столкновений с платформами, фруктами, врагами"""
-
         # Обработка столкновений с платформами
         for platform in pygame.sprite.spritecollide(self, platforms, False):
             if x_vel < 0:
@@ -129,18 +128,25 @@ class NinjaFrog(BaseHero):
                 self.rect.top = platform.rect.bottom
                 self.y_vel = 0
 
+    def collide_with_fruits(self):
         # Обработка столкновений с фруктами (взятие фрукта)
         for fruit in fruits_group:
             fruit: Fruit
-            if not fruit.is_collected() and pygame.sprite.collide_mask(self,
-                                                                       fruit):
+            if not fruit.is_collected() and pygame.sprite.collide_mask(self, fruit):
                 self.health += fruit.get_health()
                 print("Жизни героя", self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
+
+    def collide_with_enemies(self):
         # Обработка столкновений с врагами (работает неправильно)
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
-            # движение по оси Y вниз(герой наносит урон, напрыжка на врага)
-            if y_vel < 0:
+
+            # Имитация головы врага (тестовый вариант)
+            enemy_head = pygame.rect.Rect(enemy.rect.x + (enemy.rect.width / 3),
+                                     enemy.rect.y, enemy.rect.width / 3,
+                                     enemy.rect.height / 4)
+
+            if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect, enemy_head):
                 print("герой наносит урон")
                 enemy.get_hit(self.damage)
                 # ...
@@ -159,7 +165,7 @@ class NinjaFrog(BaseHero):
                     self.x_vel = 0
                 elif self.direction == 'right':
                     self.x_vel = -5
-                elif self.direction == 'right':
+                elif self.direction == 'left':
                     self.x_vel = 5
 
                 self.y_vel = -5
@@ -182,10 +188,10 @@ class NinjaFrog(BaseHero):
                     self.x_vel = 0
                 elif self.direction == 'right':
                     self.x_vel = -5
-                elif self.direction == 'right':
+                elif self.direction == 'left':
                     self.x_vel = 5
 
-                self.y_vel = -5
+                self.y_vel = -5 if self.y_vel > 0 else 5
 
     def update(self):
         super().update()
@@ -205,6 +211,8 @@ class NinjaFrog(BaseHero):
             self.on_ground = False
 
         self.collide_with_spikes()  # Проверка на столкновение с шипами
+        self.collide_with_enemies()
+        self.collide_with_fruits()
 
         self.rect.x += self.x_vel
         self.collide(self.x_vel, 0)
