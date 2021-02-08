@@ -37,7 +37,7 @@ class Shuriken(pygame.sprite.Sprite):
         self.delta = self.range_flight / 26
         self.flown = 0  # сколько сюрикен уже пролетел
         # урон, который получит персонаж, если в него попадёт сюрикен
-        self.damage = 30
+        self.damage = 10
 
     def move(self):
         if self.direction == "right":
@@ -48,7 +48,10 @@ class Shuriken(pygame.sprite.Sprite):
         Shuriken.move_anim.blit(self.image, (0, 0))
 
     def update(self):
-        if self.flown < self.range_flight and \
+        for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
+            enemy.get_hit(self.damage)
+            self.kill()
+        if self.flown + self.delta <= self.range_flight and \
                 not pygame.sprite.spritecollideany(self, platforms) and \
                 not pygame.sprite.spritecollideany(self, spikes_group):
             self.move()

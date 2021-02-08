@@ -6,6 +6,7 @@ import pyganim
 
 from constants import *
 from functions import *
+from enemy import *
 from some_classes import *
 from weapon import Shuriken
 
@@ -30,6 +31,10 @@ def load_level(filename):
                 Spikes(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '*':
                 Fruit(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == 'b':
+                BouncedEnemy(x * TILE_SIDE, y * TILE_SIDE, 10)
+            elif elem == 'w':
+                WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
             elif elem == '@':
                 new_player = NinjaFrog(x * TILE_SIDE - 18,
                                        y * TILE_SIDE + 18, 5)
@@ -89,8 +94,9 @@ class NinjaFrog(BaseHero):
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
         self.height_jump = 10  # показатель высоты прыжка
         self.double_jump = False  # происходит ли сейчас двойной прыжок
-        self.got_hit = False
-        self.health = 100
+        self.got_hit = False  # Время последнего удара
+        self.health = 100  # количество жизней
+        self.damage = 15  # урон, который наносит герой при напрыгивании на врага
 
         # время последнего столкновения с шипами (мс)
         self.last_collide_with_spikes = pygame.time.get_ticks()
@@ -103,7 +109,7 @@ class NinjaFrog(BaseHero):
             anim.flip(True, False)
 
     def collide(self, x_vel, y_vel):
-        """Обработка столкновений с платформами, фруктами"""
+        """Обработка столкновений с платформами, фруктами, врагами"""
 
         # Обработка столкновений с платформами
         for platform in pygame.sprite.spritecollide(self, platforms, False):
@@ -129,8 +135,34 @@ class NinjaFrog(BaseHero):
             if not fruit.is_collected() and pygame.sprite.collide_mask(self,
                                                                        fruit):
                 self.health += fruit.get_health()
-                print(self.health)  # для отладки
+                print("Жизни героя", self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
+        # Обработка столкновений с врагами (работает неправильно)
+        for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
+            # движение по оси Y вниз(герой наносит урон, напрыжка на врага)
+            if y_vel < 0:
+                print("герой наносит урон")
+                enemy.get_hit(self.damage)
+                # ...
+            # движение по оси X или вверх по оси Y (герой получает урон)
+            else:
+                self.health -= enemy.get_damage()
+                print("Жизни героя", self.health)  # для отладки
+                if self.health <= 0:
+                    self.defeat()
+                    break
+
+                self.got_hit = pygame.time.get_ticks()  # Время последнего удара
+
+                # Изменение векторов скоростей в соответствии со старыми
+                if self.x_vel == 0 and self.y_vel > 0:
+                    self.x_vel = 0
+                elif self.direction == 'right':
+                    self.x_vel = -5
+                elif self.direction == 'right':
+                    self.x_vel = 5
+
+                self.y_vel = -5
 
     def collide_with_spikes(self):
         # Обработка столкновений с шипами
@@ -138,7 +170,7 @@ class NinjaFrog(BaseHero):
             spike: Spikes
             if pygame.sprite.collide_mask(self, spike):
                 self.health -= spike.get_damage()
-                print(self.health)  # для отладки
+                print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
                     self.defeat()
                     break

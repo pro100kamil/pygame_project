@@ -1,0 +1,5 @@
+@ - главный герой
+* - фрукт
+. - шипы
+b - BouncedEnemy
+w - WalkingEnemy

@@ -1,66 +1,16 @@
-import pygame
 import os
+from random import choice
+
+import pygame
 import pyganim
 
-
-TILE_SIDE = 50
-SIZE = WIDTH, HEIGHT = 750, 750
-FPS = 30
-GRAVITY = 10 / FPS
-
-pygame.init()
-screen = pygame.display.set_mode(SIZE)
-
-
-def cut_sheet(filename, rows, cols, anim_delay):
-
-    sheet: pygame.Surface = load_image(filename)
-    picture_w, picture_h = sheet.get_width() // cols, sheet.get_height() // rows
-    frames = []
-    for y in range(rows):
-        for x in range(cols):
-            frame_location = (picture_w * x, picture_h * y)
-            frames.append((sheet.subsurface(frame_location, (picture_w, picture_h)), anim_delay))
-
-    return frames
-
-
-def load_image(name, color_key=None):
-    """Загрузка изображения"""
-    fullname = os.path.join('data', name)
-    # если файл не существует, то выходим
-    if not os.path.isfile(fullname):
-        raise SystemExit(f"Файл с изображением '{fullname}' не найден")
-    image = pygame.image.load(fullname)
-    if color_key is not None:
-        image = image.convert()
-        if color_key == -1:
-            color_key = image.get_at((0, 0))
-        image.set_colorkey(color_key)
-    else:
-        image = image.convert_alpha()
-    return image
-
-
-def load_level(filename):
-    """Загрузка уровня"""
-    filename = os.path.join('data', filename)
-
-    with open(filename, 'r') as mapFile:
-        level_map = [line.strip() for line in mapFile]
-    for y, row in enumerate(level_map):
-        for x, elem in enumerate(row):
-            if elem == '-':
-                Platform(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '*':
-                BouncedEnemy(x * TILE_SIDE, y * TILE_SIDE, 10)
-            elif elem == '@':
-                WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
+from constants import *
+from functions import *
 
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
-        super().__init__(all_sprites)
+        super().__init__(enemies_group, all_sprites)
 
         self.width, self.height = width, height
 
@@ -69,12 +19,23 @@ class Enemy(pygame.sprite.Sprite):
         self.image = pygame.Surface((self.width, self.height))
         self.x_vel, self.y_vel = None, None
         self.on_ground = False
+        self.health = None
+        self.damage = None
 
     def update(self):
         self.rect = self.rect.move(self.x_vel, self.y_vel)
 
         self.image.fill('black')
         self.image.set_colorkey('black')
+
+    def get_hit(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            print(type(self), "повержен")
+            self.kill()
+
+    def get_damage(self):
+        return self.damage
 
     def get_position(self):
         return self.rect.x, self.rect.y
@@ -95,6 +56,8 @@ class BouncedEnemy(Enemy):
         self.jump, self.x_vel, self.y_vel = jump, 0, 0
         self.last_fall = pygame.time.get_ticks()
         self.just_fell = True
+        self.health = 55  # количество жизней
+        self.damage = 15  # урон, который наносит враг при атаке
 
     def collide(self):
         for platform in pygame.sprite.spritecollide(self, platforms, False):
@@ -146,6 +109,8 @@ class WalkingEnemy(Enemy):
         super().__init__(x, y, WalkingEnemy.width, WalkingEnemy.height)
         self.x_vel, self.y_vel = speed, 0
         self.max_length = max_length
+        self.health = 25  # количество жизней
+        self.damage = 15  # урон, который наносит враг при атаке
 
     def collide(self):
         if not self.on_ground:
@@ -180,36 +145,3 @@ class WalkingEnemy(Enemy):
             WalkingEnemy.left_anim.blit(self.image, (0, 0))
         else:
             WalkingEnemy.stay_anim.blit(self.image, (0, 0))
-
-
-class Platform(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(platforms, all_sprites)
-
-        picture = load_image('grass.png')
-        self.image = pygame.transform.scale(picture, (TILE_SIDE, TILE_SIDE))
-
-        self.width, self.height = self.image.get_size()
-
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
-
-
-running = True
-clock = pygame.time.Clock()
-
-all_sprites = pygame.sprite.Group()
-platforms = pygame.sprite.Group()
-load_level('map.txt')
-
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    screen.fill(pygame.Color("light blue"))
-    all_sprites.update()
-    all_sprites.draw(screen)
-    pygame.display.flip()
-    clock.tick(FPS)
-
-pygame.quit()
