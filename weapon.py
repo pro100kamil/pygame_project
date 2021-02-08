@@ -15,7 +15,6 @@ screen = pygame.display.set_mode(SIZE)
 
 
 class Shuriken(pygame.sprite.Sprite):
-
     width, height = 25, 25
 
     move_anim = pyganim.PygAnimation(
@@ -49,7 +48,9 @@ class Shuriken(pygame.sprite.Sprite):
         Shuriken.move_anim.blit(self.image, (0, 0))
 
     def update(self):
-        if self.flown < self.range_flight:
+        if self.flown < self.range_flight and \
+                not pygame.sprite.spritecollideany(self, platforms) and \
+                not pygame.sprite.spritecollideany(self, spikes_group):
             self.move()
         else:  # полёт закончен
             self.flown = 0

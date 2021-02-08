@@ -228,7 +228,6 @@ class NinjaFrog(BaseHero):
                 flag_anim = False
 
         if pygame.key.get_pressed()[pygame.K_DOWN]:
-            # Не было проверки на то, что гг стоит на земле при нажатии "вниз"
             if not self.on_ground:
                 self.y_vel = 2 * self.height_jump
                 if flag_anim:
@@ -249,9 +248,6 @@ class NinjaFrog(BaseHero):
 
         if pygame.key.get_pressed()[pygame.K_f]:
             self.defeat()
-
-        # if pygame.key.get_pressed()[pygame.K_RETURN]:
-        #     self.attack()
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
