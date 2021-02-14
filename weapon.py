@@ -5,14 +5,6 @@ import pyganim
 from constants import *
 from functions import *
 
-TILE_SIDE = 50
-SIZE = WIDTH, HEIGHT = 750, 750
-FPS = 30
-GRAVITY = 10 / FPS
-
-pygame.init()
-screen = pygame.display.set_mode(SIZE)
-
 
 class Shuriken(pygame.sprite.Sprite):
     width, height = 25, 25

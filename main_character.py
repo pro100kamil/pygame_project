@@ -130,6 +130,9 @@ class MainHero(BaseHero):
         for anim in self.animations.values():
             anim.flip(True, False)
 
+    def get_health(self):
+        return self.health
+
     def collide(self, x_vel, y_vel):
         """Обработка столкновений с платформами, фруктами, врагами"""
         # Обработка столкновений с платформами
@@ -354,7 +357,9 @@ if __name__ == "__main__":
                 if event.key == pygame.K_RETURN:
                     player.attack()
 
-        screen.fill(pygame.Color("light blue"))
+        game_screen.fill(pygame.Color("light blue"))
+        screen.fill(pygame.Color("black"))
+
         all_sprites.update()
 
         if player.health:
@@ -362,7 +367,18 @@ if __name__ == "__main__":
             camera.update(player)
         # обновляем положение всех спрайтов
         for sprite in all_sprites:
-            screen.blit(sprite.image, camera.apply(sprite))
+            game_screen.blit(sprite.image, camera.apply(sprite))
+
+        screen.blit(game_screen, (0, TILE_SIDE))
+
+        font = pygame.font.Font(None, 30)
+        text = font.render(f"Жизни: {player.get_health()} "
+                           f"Сюрикенов осталось: ?", 1, (100, 255, 100))
+        text_x = WIDTH // 2 - text.get_width() // 2
+        text_y = TILE_SIDE // 2 - text.get_height() // 2
+        text_w = text.get_width()
+        text_h = text.get_height()
+        screen.blit(text, (text_x, text_y))
 
         pygame.display.flip()
         clock.tick(FPS)
