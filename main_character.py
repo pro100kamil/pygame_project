@@ -189,9 +189,9 @@ class MainHero(BaseHero):
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
                 enemy_x_vel = enemy.get_x_vel()
                 # Изменение векторов скоростей в соответствии со старыми. Было переработано
-                if enemy_x_vel < 0:
+                if enemy_x_vel < 0 and self.x_vel == 0:
                     self.x_vel = -5
-                elif enemy_x_vel > 0:
+                elif enemy_x_vel > 0 and self.x_vel == 0:
                     self.x_vel = 5
                 elif self.direction == 'left':
                     self.x_vel = 5
