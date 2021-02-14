@@ -166,11 +166,11 @@ class MainHero(BaseHero):
     def collide_with_enemies(self):
         # Обработка столкновений с врагами (работает неправильно)
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
-
+            enemy: Enemy
             # Имитация головы врага (тестовый вариант)
             enemy_head = pygame.rect.Rect(
-                enemy.rect.x + (enemy.rect.width / 3),
-                enemy.rect.y, enemy.rect.width / 3,
+                enemy.rect.x + (enemy.rect.width / 4),
+                enemy.rect.y, enemy.rect.width / 2,
                 enemy.rect.height / 4)
 
             if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect,
@@ -179,7 +179,7 @@ class MainHero(BaseHero):
                 enemy.get_hit(self.damage)
                 # ...
             # движение по оси X или вверх по оси Y (герой получает урон)
-            else:
+            elif not self.got_hit:
                 self.health -= enemy.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
@@ -187,14 +187,16 @@ class MainHero(BaseHero):
                     break
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
-
-                # Изменение векторов скоростей в соответствии со старыми
-                if self.x_vel == 0 and self.y_vel > 0:
-                    self.x_vel = 0
-                elif self.direction == 'right':
+                enemy_x_vel = enemy.get_x_vel()
+                # Изменение векторов скоростей в соответствии со старыми. Было переработано
+                if enemy_x_vel < 0:
                     self.x_vel = -5
+                elif enemy_x_vel > 0:
+                    self.x_vel = 5
                 elif self.direction == 'left':
                     self.x_vel = 5
+                elif self.direction == 'right':
+                    self.x_vel = -5
 
                 self.y_vel = -5
 
@@ -297,7 +299,7 @@ class MainHero(BaseHero):
 
         if pygame.key.get_pressed()[pygame.K_DOWN]:
             if not self.on_ground:
-                self.y_vel = 2 * self.height_jump
+                self.y_vel = 1.4 * self.height_jump
                 if flag_anim:
                     self.animations['fall'].blit(self.image, (0, 0))
                     flag_anim = False

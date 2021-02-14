@@ -40,6 +40,9 @@ class Enemy(pygame.sprite.Sprite):
     def get_position(self):
         return self.rect.x, self.rect.y
 
+    def get_x_vel(self):
+        return self.x_vel
+
 
 class BouncedEnemy(Enemy):
     width, height = 34, 44
