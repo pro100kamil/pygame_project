@@ -10,30 +10,13 @@ from enemy import *
 from some_classes import *
 from weapon import Shuriken
 
-# MAIN_HERO = 'Ninja Frog'
-# MAIN_HERO = 'Pink Man'
+
 MAIN_HERO = 'Virtual Guy'
-# MAIN_HERO = 'Mask Dude'
 pygame.init()
 
-NinjaFrog_animations = {'hit': pyganim.PygAnimation(cut_sheet(
-    'Ninja Frog/Hit (32x32).png', 1, 7, anim_delay=100)),
-
-    'jump': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Jump (32x32).png', 1, 1, anim_delay=100)),
-
-    'double_jump': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Double Jump (32x32).png', 1, 6, anim_delay=100)),
-
-    'fall': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Fall (32x32).png', 1, 1, anim_delay=100)),
-
-    'run': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Run (32x32).png', 1, 12, anim_delay=100)),
-
-    'stay': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Idle (32x32).png', 1, 11, anim_delay=100))
-}
+# name: (damage, speed)
+heroes = {'Ninja Frog': (15, 5), 'Pink Man': (20, 4),
+          'Virtual Guy': (15, 7), 'Mask Dude': (15, 6)}
 
 
 def load_level(filename):
@@ -60,7 +43,7 @@ def load_level(filename):
                 WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
             elif elem == '@':
                 new_player = MainHero(x * TILE_SIDE - 18,
-                                      y * TILE_SIDE + 18, 5, MAIN_HERO)
+                                      y * TILE_SIDE + 18, MAIN_HERO)
 
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
@@ -88,16 +71,17 @@ class BaseHero(pygame.sprite.Sprite):
 class MainHero(BaseHero):
     width, height = 32, 32
 
-    def __init__(self, x, y, speed, name):
+    def __init__(self, x, y, name):
         super().__init__(x, y, MainHero.width, MainHero.height)
         self.direction = "right"
-        self.speed = speed
+        self.speed = heroes[name][1]
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
         self.height_jump = 10  # показатель высоты прыжка
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.got_hit = False  # Время последнего удара
         self.health = 100  # количество жизней
-        self.damage = 15  # урон, который наносит герой при напрыгивании на врага
+        # урон, который наносит герой при напрыгивании на врага
+        self.damage = heroes[name][0]
 
         # время последнего столкновения с шипами (мс)
         self.last_collide_with_spikes = pygame.time.get_ticks()
@@ -177,7 +161,7 @@ class MainHero(BaseHero):
                                                                enemy_head):
                 print("герой наносит урон")
                 enemy.get_hit(self.damage)
-                # ...
+                self.y_vel = -8
             # движение по оси X или вверх по оси Y (герой получает урон)
             elif not self.got_hit:
                 self.health -= enemy.get_damage()
