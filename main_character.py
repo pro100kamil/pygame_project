@@ -10,13 +10,30 @@ from enemy import *
 from some_classes import *
 from weapon import Shuriken
 
-
+# MAIN_HERO = 'Ninja Frog'
+# MAIN_HERO = 'Pink Man'
 MAIN_HERO = 'Virtual Guy'
+# MAIN_HERO = 'Mask Dude'
 pygame.init()
 
-# name: (damage, speed)
-heroes = {'Ninja Frog': (15, 5), 'Pink Man': (20, 4),
-          'Virtual Guy': (15, 7), 'Mask Dude': (15, 6)}
+NinjaFrog_animations = {'hit': pyganim.PygAnimation(cut_sheet(
+    'Ninja Frog/Hit (32x32).png', 1, 7, anim_delay=100)),
+
+    'jump': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Jump (32x32).png', 1, 1, anim_delay=100)),
+
+    'double_jump': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Double Jump (32x32).png', 1, 6, anim_delay=100)),
+
+    'fall': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Fall (32x32).png', 1, 1, anim_delay=100)),
+
+    'run': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Run (32x32).png', 1, 12, anim_delay=100)),
+
+    'stay': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Idle (32x32).png', 1, 11, anim_delay=100))
+}
 
 
 def load_level(filename):
@@ -43,7 +60,7 @@ def load_level(filename):
                 WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
             elif elem == '@':
                 new_player = MainHero(x * TILE_SIDE - 18,
-                                      y * TILE_SIDE + 18, MAIN_HERO)
+                                      y * TILE_SIDE + 18, 5, MAIN_HERO)
 
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
@@ -71,17 +88,16 @@ class BaseHero(pygame.sprite.Sprite):
 class MainHero(BaseHero):
     width, height = 32, 32
 
-    def __init__(self, x, y, name):
+    def __init__(self, x, y, speed, name):
         super().__init__(x, y, MainHero.width, MainHero.height)
         self.direction = "right"
-        self.speed = heroes[name][1]
+        self.speed = speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
         self.height_jump = 10  # показатель высоты прыжка
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.got_hit = False  # Время последнего удара
         self.health = 100  # количество жизней
-        # урон, который наносит герой при напрыгивании на врага
-        self.damage = heroes[name][0]
+        self.damage = 15  # урон, который наносит герой при напрыгивании на врага
 
         # время последнего столкновения с шипами (мс)
         self.last_collide_with_spikes = pygame.time.get_ticks()
@@ -159,11 +175,13 @@ class MainHero(BaseHero):
 
             if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect,
                                                                enemy_head):
-                print("герой наносит урон")
+                print('герой наносит урон')
+                self.y_vel = -7  # Отскок вверх при прыжке на врага сверху
+                self.rect.bottom = enemy.rect.top  # Чтобы не было множественного удара
                 enemy.get_hit(self.damage)
-                self.y_vel = -8
+                # ...
             # движение по оси X или вверх по оси Y (герой получает урон)
-            elif not self.got_hit:
+            elif not self.got_hit:  # Если герой не в "шоке"
                 self.health -= enemy.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
@@ -188,7 +206,8 @@ class MainHero(BaseHero):
         # Обработка столкновений с шипами
         for spike in spikes_group:
             spike: Spikes
-            if pygame.sprite.collide_mask(self, spike):
+            # Если герой не в "шоке"
+            if not self.got_hit and pygame.sprite.collide_mask(self, spike):
                 self.health -= spike.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
@@ -359,7 +378,7 @@ if __name__ == "__main__":
 
         font = pygame.font.Font(None, 30)
         text = font.render(f"Жизни: {player.get_health()} "
-                           f"Сюрикенов осталось: ?", 1, (100, 255, 100))
+                           f"Сюрикенов осталось: ?", True, (100, 255, 100))
         text_x = WIDTH // 2 - text.get_width() // 2
         text_y = TILE_SIDE // 2 - text.get_height() // 2
         text_w = text.get_width()
