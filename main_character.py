@@ -10,7 +10,30 @@ from enemy import *
 from some_classes import *
 from weapon import Shuriken
 
+# MAIN_HERO = 'Ninja Frog'
+# MAIN_HERO = 'Pink Man'
+MAIN_HERO = 'Virtual Guy'
+# MAIN_HERO = 'Mask Dude'
 pygame.init()
+
+NinjaFrog_animations = {'hit': pyganim.PygAnimation(cut_sheet(
+    'Ninja Frog/Hit (32x32).png', 1, 7, anim_delay=100)),
+
+    'jump': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Jump (32x32).png', 1, 1, anim_delay=100)),
+
+    'double_jump': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Double Jump (32x32).png', 1, 6, anim_delay=100)),
+
+    'fall': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Fall (32x32).png', 1, 1, anim_delay=100)),
+
+    'run': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Run (32x32).png', 1, 12, anim_delay=100)),
+
+    'stay': pyganim.PygAnimation(cut_sheet(
+        'Ninja Frog/Idle (32x32).png', 1, 11, anim_delay=100))
+}
 
 
 def load_level(filename):
@@ -36,8 +59,8 @@ def load_level(filename):
             elif elem == 'w':
                 WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
             elif elem == '@':
-                new_player = NinjaFrog(x * TILE_SIDE - 18,
-                                       y * TILE_SIDE + 18, 5)
+                new_player = MainHero(x * TILE_SIDE - 18,
+                                      y * TILE_SIDE + 18, 5, MAIN_HERO)
 
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
@@ -62,33 +85,11 @@ class BaseHero(pygame.sprite.Sprite):
         return self.rect.x, self.rect.y
 
 
-class NinjaFrog(BaseHero):
+class MainHero(BaseHero):
     width, height = 32, 32
 
-    animations = {'hit': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Hit (32x32).png', 1, 7, anim_delay=100)),
-
-        'jump': pyganim.PygAnimation(cut_sheet(
-            'Ninja Frog/Jump (32x32).png', 1, 1, anim_delay=100)),
-
-        'double_jump': pyganim.PygAnimation(cut_sheet(
-            'Ninja Frog/Double Jump (32x32).png', 1, 6, anim_delay=100)),
-
-        'fall': pyganim.PygAnimation(cut_sheet(
-            'Ninja Frog/Fall (32x32).png', 1, 1, anim_delay=100)),
-
-        'run': pyganim.PygAnimation(cut_sheet(
-            'Ninja Frog/Run (32x32).png', 1, 12, anim_delay=100)),
-
-        'stay': pyganim.PygAnimation(cut_sheet(
-            'Ninja Frog/Idle (32x32).png', 1, 11, anim_delay=100))
-    }
-
-    for anim in animations.values():
-        anim.play()
-
-    def __init__(self, x, y, speed):
-        super().__init__(x, y, NinjaFrog.width, NinjaFrog.height)
+    def __init__(self, x, y, speed, name):
+        super().__init__(x, y, MainHero.width, MainHero.height)
         self.direction = "right"
         self.speed = speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
@@ -103,9 +104,30 @@ class NinjaFrog(BaseHero):
 
         self.mask = pygame.mask.from_surface(self.image)
 
+        self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
+            f'{name}/Hit (32x32).png', 1, 7, anim_delay=100)),
+
+            'jump': pyganim.PygAnimation(cut_sheet(
+                f'{name}/Jump (32x32).png', 1, 1, anim_delay=100)),
+
+            'double_jump': pyganim.PygAnimation(cut_sheet(
+                f'{name}/Double Jump (32x32).png', 1, 6, anim_delay=100)),
+
+            'fall': pyganim.PygAnimation(cut_sheet(
+                f'{name}/Fall (32x32).png', 1, 1, anim_delay=100)),
+
+            'run': pyganim.PygAnimation(cut_sheet(
+                f'{name}/Run (32x32).png', 1, 12, anim_delay=100)),
+
+            'stay': pyganim.PygAnimation(cut_sheet(
+                f'{name}/Idle (32x32).png', 1, 11, anim_delay=100))
+        }
+        for anim in self.animations.values():
+            anim.play()
+
     def flip(self):
         """Разворот всех анимаций спрайтов"""
-        for anim in NinjaFrog.animations.values():
+        for anim in self.animations.values():
             anim.flip(True, False)
 
     def collide(self, x_vel, y_vel):
@@ -132,7 +154,8 @@ class NinjaFrog(BaseHero):
         # Обработка столкновений с фруктами (взятие фрукта)
         for fruit in fruits_group:
             fruit: Fruit
-            if not fruit.is_collected() and pygame.sprite.collide_mask(self, fruit):
+            if not fruit.is_collected() and pygame.sprite.collide_mask(self,
+                                                                       fruit):
                 self.health += fruit.get_health()
                 print("Жизни героя", self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
@@ -142,11 +165,13 @@ class NinjaFrog(BaseHero):
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
 
             # Имитация головы врага (тестовый вариант)
-            enemy_head = pygame.rect.Rect(enemy.rect.x + (enemy.rect.width / 3),
-                                     enemy.rect.y, enemy.rect.width / 3,
-                                     enemy.rect.height / 4)
+            enemy_head = pygame.rect.Rect(
+                enemy.rect.x + (enemy.rect.width / 3),
+                enemy.rect.y, enemy.rect.width / 3,
+                enemy.rect.height / 4)
 
-            if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect, enemy_head):
+            if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect,
+                                                               enemy_head):
                 print("герой наносит урон")
                 enemy.get_hit(self.damage)
                 # ...
@@ -198,7 +223,7 @@ class NinjaFrog(BaseHero):
 
         if not self.health:  # герой повержен
             self.rect.y += 5
-            NinjaFrog.animations['stay'].blit(self.image, (0, 0))
+            self.animations['stay'].blit(self.image, (0, 0))
             return
 
         # флаг, нужна ли ещё анимация в текущем обновлении
@@ -223,18 +248,18 @@ class NinjaFrog(BaseHero):
         # Если игрок попал на шипы,
         # то на протяжении 700 мс проигрывается анимация
         if self.got_hit and pygame.time.get_ticks() - self.got_hit < 700:
-            NinjaFrog.animations['hit'].play()
-            NinjaFrog.animations['hit'].blit(self.image, (0, 0))
+            self.animations['hit'].play()
+            self.animations['hit'].blit(self.image, (0, 0))
             return
         else:
             self.got_hit = False  # Анимация прошла
-            NinjaFrog.animations['hit'].stop()
+            self.animations['hit'].stop()
 
         if self.double_jump:
-            NinjaFrog.animations['double_jump'].blit(self.image, (0, 0))
+            self.animations['double_jump'].blit(self.image, (0, 0))
             flag_anim = False
-            if NinjaFrog.animations['double_jump'].currentFrameNum == \
-                    NinjaFrog.animations['double_jump'].numFrames - 1:
+            if self.animations['double_jump'].currentFrameNum == \
+                    self.animations['double_jump'].numFrames - 1:
                 self.double_jump = False
 
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
@@ -243,7 +268,7 @@ class NinjaFrog(BaseHero):
                 self.direction = "right"
                 self.flip()
             if flag_anim:
-                NinjaFrog.animations['run'].blit(self.image, (0, 0))
+                self.animations['run'].blit(self.image, (0, 0))
                 flag_anim = False
 
         elif pygame.key.get_pressed()[pygame.K_LEFT]:
@@ -253,7 +278,7 @@ class NinjaFrog(BaseHero):
                 self.direction = "left"
                 self.flip()
             if flag_anim:
-                NinjaFrog.animations['run'].blit(self.image, (0, 0))
+                self.animations['run'].blit(self.image, (0, 0))
                 flag_anim = False
 
         if flag_anim:  # нет передвижения по оси x
@@ -264,14 +289,14 @@ class NinjaFrog(BaseHero):
                 self.on_ground = False
                 self.y_vel = -self.height_jump
             if flag_anim:
-                NinjaFrog.animations['jump'].blit(self.image, (0, 0))
+                self.animations['jump'].blit(self.image, (0, 0))
                 flag_anim = False
 
         if pygame.key.get_pressed()[pygame.K_DOWN]:
             if not self.on_ground:
                 self.y_vel = 2 * self.height_jump
                 if flag_anim:
-                    NinjaFrog.animations['fall'].blit(self.image, (0, 0))
+                    self.animations['fall'].blit(self.image, (0, 0))
                     flag_anim = False
 
         if pygame.key.get_pressed()[pygame.K_SPACE] \
@@ -280,10 +305,10 @@ class NinjaFrog(BaseHero):
                 self.on_ground = False
                 self.y_vel = -1.4 * self.height_jump
                 self.double_jump = True
-                NinjaFrog.animations['double_jump'].play()
+                self.animations['double_jump'].play()
                 if flag_anim:
-                    NinjaFrog.animations['double_jump'].blit(self.image,
-                                                             (0, 0))
+                    self.animations['double_jump'].blit(self.image,
+                                                        (0, 0))
                     flag_anim = False
 
         if pygame.key.get_pressed()[pygame.K_f]:
@@ -292,13 +317,13 @@ class NinjaFrog(BaseHero):
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
             if self.on_ground:
-                NinjaFrog.animations['stay'].blit(self.image, (0, 0))
+                self.animations['stay'].blit(self.image, (0, 0))
             # когда в воздухе и падает анимация падения
             elif self.y_vel >= 0:
-                NinjaFrog.animations['fall'].blit(self.image, (0, 0))
+                self.animations['fall'].blit(self.image, (0, 0))
             # когда поднимается - анимация прыжка
             else:
-                NinjaFrog.animations['jump'].blit(self.image, (0, 0))
+                self.animations['jump'].blit(self.image, (0, 0))
 
     def attack(self):
         """Атака героя"""
@@ -309,7 +334,7 @@ class NinjaFrog(BaseHero):
     def defeat(self):
         """Поражение героя"""
         self.health = 0  # чтобы здоровье не было отрицательным
-        NinjaFrog.animations['stay'].flip(False, True)
+        self.animations['stay'].flip(False, True)
 
 
 if __name__ == "__main__":
