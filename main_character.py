@@ -1,5 +1,6 @@
 import os
 from random import choice
+from collections import namedtuple
 
 import pygame
 import pyganim
@@ -10,30 +11,15 @@ from enemy import *
 from some_classes import *
 from weapon import Shuriken
 
-# MAIN_HERO = 'Ninja Frog'
-# MAIN_HERO = 'Pink Man'
-MAIN_HERO = 'Virtual Guy'
-# MAIN_HERO = 'Mask Dude'
+hero_parameters = namedtuple('hero_parameters', 'damage speed health')
+MAIN_HERO = 'Pink Man'
+# name: (damage, speed, health)
+heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
+          'Pink Man': hero_parameters(20, 4, 120),
+          'Virtual Guy': hero_parameters(15, 7, 95),
+          'Mask Dude': hero_parameters(15, 6, 100)}
+
 pygame.init()
-
-NinjaFrog_animations = {'hit': pyganim.PygAnimation(cut_sheet(
-    'Ninja Frog/Hit (32x32).png', 1, 7, anim_delay=100)),
-
-    'jump': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Jump (32x32).png', 1, 1, anim_delay=100)),
-
-    'double_jump': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Double Jump (32x32).png', 1, 6, anim_delay=100)),
-
-    'fall': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Fall (32x32).png', 1, 1, anim_delay=100)),
-
-    'run': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Run (32x32).png', 1, 12, anim_delay=100)),
-
-    'stay': pyganim.PygAnimation(cut_sheet(
-        'Ninja Frog/Idle (32x32).png', 1, 11, anim_delay=100))
-}
 
 
 def load_level(filename):
@@ -60,7 +46,7 @@ def load_level(filename):
                 WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
             elif elem == '@':
                 new_player = MainHero(x * TILE_SIDE - 18,
-                                      y * TILE_SIDE + 18, 5, MAIN_HERO)
+                                      y * TILE_SIDE + 18, MAIN_HERO)
 
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
@@ -88,19 +74,20 @@ class BaseHero(pygame.sprite.Sprite):
 class MainHero(BaseHero):
     width, height = 32, 32
 
-    def __init__(self, x, y, speed, name):
+    def __init__(self, x, y, name):
         super().__init__(x, y, MainHero.width, MainHero.height)
+
         self.direction = "right"
-        self.speed = speed
+        self.speed = heroes[name].speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
         self.height_jump = 10  # показатель высоты прыжка
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.got_hit = False  # Время последнего удара
-        self.health = 100  # количество жизней
-        self.damage = 15  # урон, который наносит герой при напрыгивании на врага
+        self.health = heroes[name].health  # количество жизней
+        # урон, который наносит герой при напрыгивании на врага
+        self.damage = heroes[name].damage
 
-        # время последнего столкновения с шипами (мс)
-        self.last_collide_with_spikes = pygame.time.get_ticks()
+        self.number_shurikens = 10  # кол-во оставшихся сюрикенов
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -132,6 +119,9 @@ class MainHero(BaseHero):
 
     def get_health(self):
         return self.health
+
+    def get_number_shurikens(self):
+        return self.number_shurikens
 
     def collide(self, x_vel, y_vel):
         """Обработка столкновений с платформами, фруктами, врагами"""
@@ -243,7 +233,7 @@ class MainHero(BaseHero):
             self.y_vel = 1
             self.on_ground = False
 
-        self.collide_with_spikes()  # Проверка на столкновение с шипами
+        self.collide_with_spikes()
         self.collide_with_enemies()
         self.collide_with_fruits()
 
@@ -335,9 +325,11 @@ class MainHero(BaseHero):
 
     def attack(self):
         """Атака героя"""
-        Shuriken(self.rect.right
-                 if self.direction == "right" else self.rect.left,
-                 self.rect.top, self.direction).move()
+        if self.number_shurikens:
+            Shuriken(self.rect.right
+                     if self.direction == "right" else self.rect.left,
+                     self.rect.top, self.direction).move()
+            self.number_shurikens -= 1
 
     def defeat(self):
         """Поражение героя"""
@@ -377,8 +369,9 @@ if __name__ == "__main__":
         screen.blit(game_screen, (0, TILE_SIDE))
 
         font = pygame.font.Font(None, 30)
-        text = font.render(f"Жизни: {player.get_health()} "
-                           f"Сюрикенов осталось: ?", True, (100, 255, 100))
+        text = font.render(f"Жизни: {player.get_health()} Сюрикенов осталось: "
+                           f"{player.get_number_shurikens()}",
+                           True, (100, 255, 100))
         text_x = WIDTH // 2 - text.get_width() // 2
         text_y = TILE_SIDE // 2 - text.get_height() // 2
         text_w = text.get_width()
