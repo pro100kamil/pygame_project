@@ -42,6 +42,10 @@ def load_level(filename):
                 Fruit(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'b':
                 BouncedEnemy(x * TILE_SIDE, y * TILE_SIDE, 10)
+            elif elem == 'm':
+                Mushroom(x * TILE_SIDE, y * TILE_SIDE, 3.5, 100)
+            elif elem == 's':
+                Slime(x * TILE_SIDE, y * TILE_SIDE, 1, 100)
             elif elem == 'w':
                 WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
             elif elem == '@':
@@ -87,7 +91,7 @@ class MainHero(BaseHero):
         # урон, который наносит герой при напрыгивании на врага
         self.damage = heroes[name].damage
 
-        self.number_shurikens = 10  # кол-во оставшихся сюрикенов
+        self.number_shurikens = 50  # кол-во оставшихся сюрикенов
 
         self.mask = pygame.mask.from_surface(self.image)
 

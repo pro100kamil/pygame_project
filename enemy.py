@@ -59,7 +59,7 @@ class BouncedEnemy(Enemy):
         self.jump, self.x_vel, self.y_vel = jump, 0, 0
         self.last_fall = pygame.time.get_ticks()
         self.just_fell = True
-        self.health = 55  # количество жизней
+        self.health = 45  # количество жизней
         self.damage = 15  # урон, который наносит враг при атаке
 
     def collide(self):
@@ -148,3 +148,104 @@ class WalkingEnemy(Enemy):
             WalkingEnemy.left_anim.blit(self.image, (0, 0))
         else:
             WalkingEnemy.stay_anim.blit(self.image, (0, 0))
+
+
+class Mushroom(Enemy):
+    width, height = 32, 32
+
+    def __init__(self, x, y, speed, max_length):
+        super().__init__(x, y, WalkingEnemy.width, WalkingEnemy.height)
+        self.x_vel, self.y_vel = -speed, 0
+        self.max_length = max_length
+        self.health = 10  # количество жизней
+        self.damage = 15  # урон, который наносит враг при атаке
+
+        self.run_anim = pyganim.PygAnimation(
+            cut_sheet('Mushroom/Run (32x32).png', 1, 16, anim_delay=100))
+        self.stay_anim = pyganim.PygAnimation(
+            cut_sheet('Mushroom/Idle (32x32).png', 1, 14, anim_delay=100))
+        self.run_anim.play()
+        self.stay_anim.play()
+
+    def flip(self):
+        self.x_vel = -self.x_vel
+        self.run_anim.flip(True, False)
+        self.stay_anim.flip(True, False)
+
+    def collide(self):
+        if not self.on_ground:
+            check_on_ground = pygame.sprite.spritecollideany(self, platforms)
+            if check_on_ground is None:
+                self.y_vel += GRAVITY
+            else:
+                self.rect.bottom = check_on_ground.rect.top
+                self.y_vel = 0
+                self.on_ground = True
+
+        for platform in pygame.sprite.spritecollide(self, platforms, False):
+            if self.x_vel < 0:
+                self.flip()
+
+            elif self.x_vel > 0:
+                self.flip()
+
+    def update(self):
+        super().update()
+
+        self.collide()
+
+        if abs(self.rect.x - self.start_x) >= self.max_length:
+            self.flip()
+
+        if self.x_vel == 0:
+            self.stay_anim.blit(self.image, (0, 0))
+        else:
+            self.run_anim.blit(self.image, (0, 0))
+
+
+class Slime(Enemy):
+    width, height = 44, 30
+
+    def __init__(self, x, y, speed, max_length):
+        super().__init__(x, y, Slime.width, Slime.height)
+        self.x_vel, self.y_vel = speed, 0
+        self.max_length = max_length
+        self.health = 55  # количество жизней
+        self.damage = 15  # урон, который наносит враг при атаке
+
+        self.run_anim = pyganim.PygAnimation(
+            cut_sheet('Slime/Idle-Run (44x30).png', 1, 10, anim_delay=100))
+        self.run_anim.play()
+        self.run_anim.flip(True, False)
+
+    def flip(self):
+        self.x_vel = -self.x_vel
+        self.run_anim.flip(True, False)
+
+    def collide(self):
+        if not self.on_ground:
+            check_on_ground = pygame.sprite.spritecollideany(self, platforms)
+            if check_on_ground is None:
+                self.y_vel += GRAVITY
+            else:
+                self.rect.bottom = check_on_ground.rect.top
+                self.y_vel = 0
+                self.on_ground = True
+
+        for platform in pygame.sprite.spritecollide(self, platforms, False):
+            if self.x_vel < 0:
+                self.rect.left = platform.rect.right
+                self.flip()
+            elif self.x_vel > 0:
+                self.rect.right = platform.rect.left
+                self.flip()
+
+    def update(self):
+        super().update()
+
+        self.collide()
+
+        if abs(self.rect.x - self.start_x) >= self.max_length:
+            self.flip()
+
+        self.run_anim.blit(self.image, (0, 0))
