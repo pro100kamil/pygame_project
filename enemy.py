@@ -249,3 +249,91 @@ class Slime(Enemy):
             self.flip()
 
         self.run_anim.blit(self.image, (0, 0))
+
+
+class Chameleon(Enemy):
+    width, height = 84, 38
+
+    def __init__(self, x, y):
+        super().__init__(x, y, Chameleon.width, Chameleon.height)
+        speed = 3
+        self.x_vel, self.y_vel = -speed, 0
+        # self.max_length = 300
+        self.health = 50  # количество жизней
+        self.damage = 15  # урон, который наносит враг при атаке
+
+        self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
+            'Chameleon/Hit (84x38).png', 1, 5, anim_delay=100)),
+
+            'attack': pyganim.PygAnimation(cut_sheet(
+                'Chameleon/Attack (84x38).png', 1, 10, anim_delay=100)),
+
+            'run': pyganim.PygAnimation(cut_sheet(
+                'Chameleon/Run (84x38).png', 1, 8, anim_delay=100)),
+
+            'stay': pyganim.PygAnimation(cut_sheet(
+                'Chameleon/Idle (84x38).png', 1, 13, anim_delay=100))
+        }
+        for anim in self.animations.values():
+            anim.play()
+
+        self.mask = pygame.mask.from_surface(self.image)
+
+        self.attack = False
+
+    def flip(self):
+        self.x_vel *= -1
+        if self.x_vel > 0:
+            self.rect.x += Chameleon.width - Chameleon.height
+        elif self.x_vel < 0:
+            self.rect.x -= (Chameleon.width - Chameleon.height)
+        for anim in self.animations.values():
+            anim.flip(True, False)
+
+    def collide(self):
+        if not self.on_ground:
+            check_on_ground = pygame.sprite.spritecollideany(self, platforms)
+            if check_on_ground is None:
+                self.y_vel += GRAVITY
+            else:
+                self.rect.bottom = check_on_ground.rect.top
+                self.y_vel = 0
+                self.on_ground = True
+        for platform in pygame.sprite.spritecollide(self, platforms, False):
+            if pygame.sprite.collide_mask(self, platform):
+                if self.x_vel < 0:
+                    self.flip()
+                elif self.x_vel > 0:
+                    self.flip()
+            self.y_vel = 0
+
+    def update(self):
+        super().update()
+
+        if not self.on_ground:
+            self.y_vel += GRAVITY
+        else:
+            self.y_vel = GRAVITY
+            self.on_ground = False
+
+        self.collide()
+
+        player = list(player_group)[0]
+        if self.x_vel > 0 and \
+            self.rect.left > player.rect.right or \
+                self.x_vel < 0 and \
+                self.rect.right < player.rect.left:
+            self.flip()
+
+        # if abs(self.rect.x - self.start_x) >= self.max_length and not self.attack:
+        #     self.flip()
+        if self.attack:
+            self.animations['attack'].blit(self.image, (0, 0))
+        elif self.x_vel == 0:
+            self.animations['stay'].blit(self.image, (0, 0))
+        else:
+            self.animations['run'].blit(self.image, (0, 0))
+
+        # анимация атаки закончилась
+        if self.animations['attack'].currentFrameNum + 1 == self.animations['attack'].numFrames:
+            self.attack = False

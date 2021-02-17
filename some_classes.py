@@ -44,6 +44,60 @@ class Spikes(pygame.sprite.Sprite):
         return self.damage
 
 
+class Saw(pygame.sprite.Sprite):
+    """Пила"""
+
+    width, height = 38, 38
+
+    def __init__(self, x, y):
+        super().__init__(spikes_group, all_sprites)
+
+        self.rect = pygame.Rect(x, y + TILE_SIDE // 2, Saw.width, Saw.height)
+        self.image = pygame.Surface((Saw.width, Saw.height))
+
+        self.anim_normal = pyganim.PygAnimation(cut_sheet(
+            f'Saw/On (38x38).png', 1, 8, anim_delay=100))
+        self.anim_normal.play()
+
+        # урон, который получит персонаж, если ударится о шипы
+        self.damage = 30
+
+        self.speed = 5
+
+        self.x_vel, self.y_vel = -self.speed, 0
+
+    def update(self):
+        self.image.fill('black')
+        self.image.set_colorkey('black')
+
+        self.rect.x += self.x_vel
+        self.rect.y += self.y_vel
+
+        check_on_ground = pygame.sprite.spritecollideany(self, platforms)
+        if check_on_ground is None:
+            self.rect.x -= self.x_vel
+            self.rect.y -= self.y_vel
+            if self.x_vel:
+                self.y_vel = -self.speed if self.x_vel > 0 else self.speed
+                if self.y_vel < 0:
+                    self.rect.x -= Saw.width // 3
+                else:
+                    self.rect.x += Saw.width // 3
+                self.x_vel = 0
+            else:
+                self.x_vel = -self.speed if self.y_vel < 0 else self.speed
+                if self.x_vel > 0:
+                    self.rect.y -= Saw.width // 3
+                else:
+                    self.rect.y += Saw.width // 3
+                self.y_vel = 0
+
+        self.anim_normal.blit(self.image, (0, 0))
+
+    def get_damage(self):
+        return self.damage
+
+
 class Fruit(pygame.sprite.Sprite):
     """Фрукты (прибавляют игроку жизни)"""
 

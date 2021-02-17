@@ -9,6 +9,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT + TILE_SIDE))
 game_screen = pygame.Surface(SIZE)
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
+player_group = pygame.sprite.Group()
 fruits_group = pygame.sprite.Group()
 enemies_group = pygame.sprite.Group()
 spikes_group = pygame.sprite.Group()

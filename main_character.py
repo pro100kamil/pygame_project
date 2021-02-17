@@ -36,8 +36,9 @@ def load_level(filename):
         for x, elem in enumerate(row):
             if elem == '-':
                 Platform(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '.':
-                Spikes(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == '`':
+                Saw(x * TILE_SIDE, y * TILE_SIDE)
+                # Spikes(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '*':
                 Fruit(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'b':
@@ -46,8 +47,8 @@ def load_level(filename):
                 Mushroom(x * TILE_SIDE, y * TILE_SIDE, 3.5, 100)
             elif elem == 's':
                 Slime(x * TILE_SIDE, y * TILE_SIDE, 1, 100)
-            elif elem == 'w':
-                WalkingEnemy(x * TILE_SIDE, y * TILE_SIDE, 2, 100)
+            elif elem == 'h':
+                Chameleon(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '@':
                 new_player = MainHero(x * TILE_SIDE - 18,
                                       y * TILE_SIDE + 18, MAIN_HERO)
@@ -57,7 +58,7 @@ def load_level(filename):
 
 class BaseHero(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
-        super().__init__(all_sprites)
+        super().__init__(player_group, all_sprites)
 
         self.width, self.height = width, height
 
@@ -127,9 +128,11 @@ class MainHero(BaseHero):
     def get_number_shurikens(self):
         return self.number_shurikens
 
+    def get_direction(self):
+        return self.direction
+
     def collide(self, x_vel, y_vel):
-        """Обработка столкновений с платформами, фруктами, врагами"""
-        # Обработка столкновений с платформами
+        """Обработка столкновений с платформами"""
         for platform in pygame.sprite.spritecollide(self, platforms, False):
             if x_vel < 0:
                 self.rect.left = platform.rect.right
@@ -176,6 +179,11 @@ class MainHero(BaseHero):
                 # ...
             # движение по оси X или вверх по оси Y (герой получает урон)
             elif not self.got_hit:  # Если герой не в "шоке"
+                if isinstance(enemy, Chameleon):
+                    if not enemy.attack:
+                        enemy.attack = True
+                    if not pygame.sprite.collide_mask(self, enemy):
+                        continue
                 self.health -= enemy.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
@@ -199,7 +207,7 @@ class MainHero(BaseHero):
     def collide_with_spikes(self):
         # Обработка столкновений с шипами
         for spike in spikes_group:
-            spike: Spikes
+            # spike: Spikes
             # Если герой не в "шоке"
             if not self.got_hit and pygame.sprite.collide_mask(self, spike):
                 self.health -= spike.get_damage()
