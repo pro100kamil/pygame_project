@@ -280,6 +280,8 @@ class MainHero(BaseHero):
             if flag_anim:
                 self.animations['run'].blit(self.image, (0, 0))
                 flag_anim = False
+            if self.on_ground:
+                self.make_dust_particles()
 
         elif pygame.key.get_pressed()[pygame.K_LEFT]:
             self.x_vel = -self.speed
@@ -290,6 +292,8 @@ class MainHero(BaseHero):
             if flag_anim:
                 self.animations['run'].blit(self.image, (0, 0))
                 flag_anim = False
+            if self.on_ground:
+                self.make_dust_particles()
 
         if flag_anim:  # нет передвижения по оси x
             self.x_vel = 0
@@ -347,6 +351,12 @@ class MainHero(BaseHero):
         """Поражение героя"""
         self.health = 0  # чтобы здоровье не было отрицательным
         self.animations['stay'].flip(False, True)
+
+    def make_dust_particles(self):
+        x = self.rect.bottomright[0] - 9 if self.direction == 'left' \
+            else self.rect.bottomleft[0] + 9
+        y = self.rect.bottomleft[1] + 2
+        Particles(self.direction, (x, y))
 
 
 if __name__ == "__main__":

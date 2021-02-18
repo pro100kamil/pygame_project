@@ -173,3 +173,35 @@ class Camera:
         top = min(0, max(HEIGHT - height, top))
 
         return pygame.Rect(left, top, width, height)
+
+
+class Particles(pygame.sprite.Sprite):
+    orig_pic = load_image('C:/Users/Emil/Desktop/Free/Other/Dust Particle.png')
+    orig_pic = pygame.transform.scale(orig_pic, (10, 10))
+    orig_side = orig_pic.get_height()
+    pictures = [orig_pic, pygame.transform.scale(orig_pic, [orig_side - 5] * 2)]
+
+    def __init__(self, direction, position):
+        super().__init__(all_sprites)
+
+        self.start_frame = 0
+
+        self.image = choice(Particles.pictures)
+        self.rect = self.image.get_rect()
+
+        self.x_vel = 0.5 if direction == 'left' else -0.5
+        self.y_vel = choice([0, -1])
+
+        if direction == 'left':
+            self.rect.bottomleft = position
+        elif direction == 'right':
+            self.rect.bottomright = position
+
+    def update(self):
+        if self.start_frame == 2:
+            self.kill()
+            return
+
+        self.rect = self.rect.move(self.x_vel, self.y_vel)
+        self.start_frame += 1
+
