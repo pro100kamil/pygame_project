@@ -176,7 +176,7 @@ class Camera:
 
 
 class Particles(pygame.sprite.Sprite):
-    orig_pic = load_image('C:/Users/Emil/Desktop/Free/Other/Dust Particle.png')
+    orig_pic = load_image('Dust Particle.png')
     orig_pic = pygame.transform.scale(orig_pic, (10, 10))
     orig_side = orig_pic.get_height()
     pictures = [orig_pic, pygame.transform.scale(orig_pic, [orig_side - 5] * 2)]

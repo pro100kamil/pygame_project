@@ -12,7 +12,7 @@ from some_classes import *
 from weapon import Shuriken
 
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-MAIN_HERO = 'Pink Man'
+MAIN_HERO = 'Virtual Guy'
 # name: (damage, speed, health)
 heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
           'Pink Man': hero_parameters(20, 4, 120),
@@ -391,7 +391,7 @@ if __name__ == "__main__":
         screen.blit(game_screen, (0, TILE_SIDE))
 
         font = pygame.font.Font(None, 30)
-        text = font.render(f"Жизни: {player.get_health()} Сюрикенов осталось: "
+        text = font.render(f": {player.get_health()} Сюрикенов осталось: "
                            f"{player.get_number_shurikens()}",
                            True, (100, 255, 100))
         text_x = WIDTH // 2 - text.get_width() // 2
@@ -399,6 +399,8 @@ if __name__ == "__main__":
         text_w = text.get_width()
         text_h = text.get_height()
         screen.blit(text, (text_x, text_y))
+        screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
+                    (text_x - 40, TILE_SIDE // 2 - 20))
 
         pygame.display.flip()
         clock.tick(FPS)
