@@ -151,6 +151,33 @@ class Fruit(pygame.sprite.Sprite):
         return self.health
 
 
+class Backpack(pygame.sprite.Sprite):
+    """Рюкзак с сюрикенами"""
+
+    width, height = 32, 32
+
+    def __init__(self, x, y):
+        super().__init__(fruits_group, all_sprites)
+
+        self.rect = pygame.Rect(x, y, Fruit.width, Fruit.height)
+        self.image = pygame.transform.scale(load_image('backpack.png', -1),
+                                            (Backpack.width, Backpack.height))
+
+        # кол-во сюрикенов, которое получит герой, если возьмёт рюкзак
+        self.kol = 10
+
+    def collect(self):
+        """Фрукт собран"""
+        self.kill()
+
+    def is_collected(self):
+        # если спрайт существует, то он не собран
+        return False
+
+    def get_kol(self):
+        return self.kol
+
+
 class Camera:
     def __init__(self, width, height):
         self.view = pygame.Rect(0, 0, width, height)

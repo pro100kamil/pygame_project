@@ -41,6 +41,8 @@ def load_level(filename):
                 # Spikes(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '*':
                 Fruit(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == '2':
+                Backpack(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'b':
                 BouncedEnemy(x * TILE_SIDE, y * TILE_SIDE, 10)
             elif elem == 'm':
@@ -92,7 +94,7 @@ class MainHero(BaseHero):
         # урон, который наносит герой при напрыгивании на врага
         self.damage = heroes[name].damage
 
-        self.number_shurikens = 50  # кол-во оставшихся сюрикенов
+        self.number_shurikens = 20  # кол-во оставшихся сюрикенов
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -156,8 +158,11 @@ class MainHero(BaseHero):
             fruit: Fruit
             if not fruit.is_collected() and pygame.sprite.collide_mask(self,
                                                                        fruit):
-                self.health += fruit.get_health()
-                print("Жизни героя", self.health)  # для отладки
+                if isinstance(fruit, Backpack):
+                    self.number_shurikens += fruit.get_kol()
+                else:
+                    self.health += fruit.get_health()
+                    print("Жизни героя", self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
 
     def collide_with_enemies(self):
@@ -377,7 +382,7 @@ if __name__ == "__main__":
                     player.attack()
 
         game_screen.fill(pygame.Color("light blue"))
-        screen.fill(pygame.Color("black"))
+        screen.fill(pygame.Color("#11A550"))
 
         all_sprites.update()
 
@@ -391,16 +396,18 @@ if __name__ == "__main__":
         screen.blit(game_screen, (0, TILE_SIDE))
 
         font = pygame.font.Font(None, 30)
-        text = font.render(f": {player.get_health()} Сюрикенов осталось: "
-                           f"{player.get_number_shurikens()}",
-                           True, (100, 255, 100))
-        text_x = WIDTH // 2 - text.get_width() // 2
-        text_y = TILE_SIDE // 2 - text.get_height() // 2
-        text_w = text.get_width()
-        text_h = text.get_height()
-        screen.blit(text, (text_x, text_y))
+        first = 275
         screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
-                    (text_x - 40, TILE_SIDE // 2 - 20))
+                    (first, TILE_SIDE // 2 - 20))
+        screen.blit(font.render(f": {player.get_health()}",
+                                True, (0, 252, 123)),
+                    (first + 50, TILE_SIDE // 2 - 10))
+        screen.blit(pygame.transform.scale(load_image('stay_shuriken.png', -1),
+                                           (36, 36)),
+                    (first + 110, TILE_SIDE // 2 - 18))
+        screen.blit(font.render(f": {player.get_number_shurikens()}",
+                                True, (0, 252, 123)),
+                    (first + 160, TILE_SIDE // 2 - 10))
 
         pygame.display.flip()
         clock.tick(FPS)
