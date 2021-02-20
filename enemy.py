@@ -21,18 +21,27 @@ class Enemy(pygame.sprite.Sprite):
         self.on_ground = False
         self.health = None
         self.damage = None
+        self.got_hit = False
+        self.animations = None
+        self.transparency = 255
+        self.angle = 0
 
     def update(self):
-        self.rect = self.rect.move(self.x_vel, self.y_vel)
+        self.rect = self.rect.move(0 if self.got_hit else self.x_vel, self.y_vel)
 
         self.image.fill('black')
         self.image.set_colorkey('black')
 
     def get_hit(self, damage):
         self.health -= damage
+        self.got_hit = pygame.time.get_ticks()
+
+        # если враг был в полёте во время удара, то он будет снижаться с начальной скоростью 5
+        self.y_vel = 5 if self.y_vel < 0 else self.y_vel
+
         if self.health <= 0:
             print(type(self), "повержен")
-            self.kill()
+            self.health = 0
 
     def get_damage(self):
         return self.damage
@@ -42,6 +51,46 @@ class Enemy(pygame.sprite.Sprite):
 
     def get_x_vel(self):
         return self.x_vel
+
+    def check_hit(self):
+        # Проверка на наличие удара от ГГ
+
+        if self.got_hit and pygame.time.get_ticks() - self.got_hit < 500:
+            self.animations['hit'].play()
+            self.animations['hit'].blit(self.image, (0, 0))
+            return True
+
+        self.animations['hit'].stop()
+        self.got_hit = False
+        return False
+
+    def defeat(self):
+        # Метод, отвечающий за смерть врага
+
+        if self.health == 0:
+            self.x_vel, self.y_vel = 0, 8  # начальная скорость падения
+
+            frame = self.animations['hit'].getCurrentFrame()
+            if self.animations['hit'].currentFrameNum + 1 == self.animations['hit'].numFrames:
+                self.animations['hit'].pause()
+            else:
+                self.animations['hit'].play()
+
+            # Меняем rect при вращении изображения врага
+            old_center = self.rect.center
+            self.image = pygame.transform.rotate(frame, self.angle)
+            self.image.set_alpha(self.transparency)
+            self.rect = self.image.get_rect()
+            self.rect.center = old_center
+
+            self.angle = (self.angle + 5) % 360  # Угол вращения
+            self.transparency -= 5
+
+            # если враг исчезает, то уничтожаем спрайт
+            if self.transparency <= 0:
+                self.kill()
+            return True
+        return False
 
 
 class BouncedEnemy(Enemy):
@@ -83,7 +132,13 @@ class BouncedEnemy(Enemy):
     def update(self):
         super().update()
 
+        if self.defeat():
+            return
+
         self.collide()
+
+        if self.check_hit():
+            return
 
         if self.on_ground:
             if self.just_fell:
@@ -141,11 +196,11 @@ class WalkingEnemy(Enemy):
         for platform in pygame.sprite.spritecollide(self, platforms, False):
             if self.x_vel < 0:
                 self.rect.left = platform.rect.right
-                self.x_vel = -self.x_vel
+                self.flip()
 
             elif self.x_vel > 0:
                 self.rect.right = platform.rect.left
-                self.x_vel = -self.x_vel
+                self.flip()
 
     def flip(self):
         self.x_vel = -self.x_vel
@@ -155,7 +210,13 @@ class WalkingEnemy(Enemy):
     def update(self):
         super().update()
 
+        if self.defeat():
+            return
+
         self.collide()
+
+        if self.check_hit():
+            return
 
         if abs(self.rect.x - self.start_x) >= self.max_length:
             self.flip()
@@ -171,7 +232,7 @@ class Mushroom(Enemy):
 
     def __init__(self, x, y, speed, max_length):
         super().__init__(x, y, WalkingEnemy.width, WalkingEnemy.height)
-        self.x_vel, self.y_vel = -speed, 0
+        self.x_vel, self.y_vel = speed, 0
         self.max_length = max_length
         self.health = 10  # количество жизней
         self.damage = 15  # урон, который наносит враг при атаке
@@ -213,7 +274,13 @@ class Mushroom(Enemy):
     def update(self):
         super().update()
 
+        if self.defeat():
+            return
+
         self.collide()
+
+        if self.check_hit():
+            return
 
         if abs(self.rect.x - self.start_x) >= self.max_length:
             self.flip()
@@ -242,8 +309,6 @@ class Slime(Enemy):
         for anim in self.animations.values():
             anim.play()
 
-        self.animations['run'].flip(True, False)
-
     def flip(self):
         self.x_vel = -self.x_vel
         for anim in self.animations.values():
@@ -270,7 +335,13 @@ class Slime(Enemy):
     def update(self):
         super().update()
 
+        if self.defeat():
+            return
+
         self.collide()
+
+        if self.check_hit():
+            return
 
         if abs(self.rect.x - self.start_x) >= self.max_length:
             self.flip()
@@ -341,7 +412,13 @@ class Chameleon(Enemy):
     def update(self):
         super().update()
 
+        if self.defeat():
+            return
+
         self.collide()
+
+        if self.check_hit():
+            return
 
         player = list(player_group)[0]
         if self.x_vel >= 0 and \

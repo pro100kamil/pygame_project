@@ -14,7 +14,7 @@ from weapon import Shuriken
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
 MAIN_HERO = 'Ninja Frog'
 # name: (damage, speed, health)
-heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
+heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
           'Pink Man': hero_parameters(20, 4, 120),
           'Virtual Guy': hero_parameters(15, 7, 95),
           'Mask Dude': hero_parameters(15, 6, 100)}
@@ -56,9 +56,9 @@ def load_level(filename):
             elif elem == 'b':
                 BouncedEnemy(x * TILE_SIDE, y * TILE_SIDE, 10)
             elif elem == 'm':
-                Mushroom(x * TILE_SIDE, y * TILE_SIDE, 3.5, 100)
+                Mushroom(x * TILE_SIDE, y * TILE_SIDE, -3.5, 100)
             elif elem == 's':
-                Slime(x * TILE_SIDE, y * TILE_SIDE, 1, 100)
+                Slime(x * TILE_SIDE, y * TILE_SIDE, -1, 100)
             elif elem == 'h':
                 Chameleon(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '@':
@@ -387,6 +387,7 @@ class MainHero(BaseHero):
         Particles(self.direction, (x, y))
 
 
+
 if __name__ == "__main__":
     running = True
     clock = pygame.time.Clock()
@@ -414,6 +415,11 @@ if __name__ == "__main__":
             camera.update(player)
         # обновляем положение всех спрайтов
         for sprite in all_sprites:
+            if not issubclass(type(sprite), Enemy):
+                game_screen.blit(sprite.image, camera.apply(sprite))
+
+        # рисуем врагов отдельно, чтобы они не были над другими текстурами
+        for sprite in enemies_group:
             game_screen.blit(sprite.image, camera.apply(sprite))
 
         screen.blit(game_screen, (0, TILE_SIDE))
