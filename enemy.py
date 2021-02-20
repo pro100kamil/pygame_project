@@ -283,11 +283,12 @@ class Chameleon(Enemy):
 
     def __init__(self, x, y):
         super().__init__(x, y, Chameleon.width, Chameleon.height)
-        speed = 3
-        self.x_vel, self.y_vel = -speed, 0
-        # self.max_length = 300
+
+        self.speed = 3
+        self.x_vel, self.y_vel = -self.speed, 0
+
         self.health = 50  # количество жизней
-        self.damage = 15  # урон, который наносит враг при атаке
+        self.damage = 25  # урон, который наносит враг при атаке
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
             'Chameleon/Hit.png', 1, 5, anim_delay=100)),
@@ -305,6 +306,8 @@ class Chameleon(Enemy):
             anim.play()
 
         self.mask = pygame.mask.from_surface(self.image)
+
+        self.prev_x_vel = 0
 
         self.attack = False
 
@@ -326,34 +329,32 @@ class Chameleon(Enemy):
                 self.rect.bottom = check_on_ground.rect.top
                 self.y_vel = 0
                 self.on_ground = True
+
         for platform in pygame.sprite.spritecollide(self, platforms, False):
-            if pygame.sprite.collide_mask(self, platform):
-                if self.x_vel < 0:
-                    self.flip()
-                elif self.x_vel > 0:
-                    self.flip()
-            self.y_vel = 0
+            if self.x_vel < 0:
+                self.rect.left = platform.rect.right
+            elif self.x_vel > 0:
+                self.rect.right = platform.rect.left
+            self.prev_x_vel = self.x_vel
+            self.x_vel = 0
 
     def update(self):
         super().update()
 
-        if not self.on_ground:
-            self.y_vel += GRAVITY
-        else:
-            self.y_vel = GRAVITY
-            self.on_ground = False
-
         self.collide()
 
         player = list(player_group)[0]
-        if self.x_vel > 0 and \
-            self.rect.left > player.rect.right or \
-                self.x_vel < 0 and \
-                self.rect.right < player.rect.left:
+        if self.x_vel >= 0 and \
+            self.rect.left > player.rect.right \
+                and self.prev_x_vel >= 0 or \
+                self.x_vel <= 0 and \
+                self.rect.right < player.rect.left \
+                and self.prev_x_vel <= 0:
+            if self.x_vel == 0:
+                self.x_vel = self.prev_x_vel
+                self.prev_x_vel = 0
             self.flip()
 
-        # if abs(self.rect.x - self.start_x) >= self.max_length and not self.attack:
-        #     self.flip()
         if self.attack:
             self.animations['attack'].blit(self.image, (0, 0))
         elif self.x_vel == 0:

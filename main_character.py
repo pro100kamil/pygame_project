@@ -177,11 +177,14 @@ class MainHero(BaseHero):
 
             if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect,
                                                                enemy_head):
+                if isinstance(enemy, Chameleon) \
+                        and not pygame.sprite.collide_mask(self, enemy):
+                    continue
                 print('герой наносит урон')
                 self.y_vel = -7  # Отскок вверх при прыжке на врага сверху
                 self.rect.bottom = enemy.rect.top  # Чтобы не было множественного удара
                 enemy.get_hit(self.damage)
-                # ...
+
             # движение по оси X или вверх по оси Y (герой получает урон)
             elif not self.got_hit:  # Если герой не в "шоке"
                 if isinstance(enemy, Chameleon):
@@ -396,7 +399,7 @@ if __name__ == "__main__":
         screen.blit(game_screen, (0, TILE_SIDE))
 
         font = pygame.font.Font(None, 30)
-        first = 275
+        first = (WIDTH - (50 * 2 + 60 * 2)) // 2
         screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
                     (first, TILE_SIDE // 2 - 20))
         screen.blit(font.render(f": {player.get_health()}",
