@@ -12,7 +12,7 @@ from some_classes import *
 from weapon import Shuriken
 
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-MAIN_HERO = 'Virtual Guy'
+MAIN_HERO = 'Ninja Frog'
 # name: (damage, speed, health)
 heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
           'Pink Man': hero_parameters(20, 4, 120),
@@ -36,6 +36,16 @@ def load_level(filename):
         for x, elem in enumerate(row):
             if elem == '-':
                 Platform(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == '1':
+                Checkpoint(
+                    x * TILE_SIDE - (TILE_SIDE - Checkpoint.width),
+                    y * TILE_SIDE + (TILE_SIDE - Checkpoint.height),
+                    'Start')
+            elif elem == '9':
+                Checkpoint(
+                    x * TILE_SIDE - (TILE_SIDE - Checkpoint.width),
+                    y * TILE_SIDE + (TILE_SIDE - Checkpoint.height),
+                    'End')
             elif elem == '`':
                 Saw(x * TILE_SIDE, y * TILE_SIDE)
                 # Spikes(x * TILE_SIDE, y * TILE_SIDE)
@@ -52,8 +62,9 @@ def load_level(filename):
             elif elem == 'h':
                 Chameleon(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '@':
-                new_player = MainHero(x * TILE_SIDE - 18,
-                                      y * TILE_SIDE + 18, MAIN_HERO)
+                new_player = MainHero(
+                    x * TILE_SIDE - (TILE_SIDE - MainHero.width),
+                    y * TILE_SIDE + (TILE_SIDE - MainHero.height), MAIN_HERO)
 
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
@@ -165,6 +176,14 @@ class MainHero(BaseHero):
                     print("Жизни героя", self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
 
+    def collide_with_checkpoints(self):
+        # Обработка столкновений с флажками
+        for checkpoint in pygame.sprite.spritecollide(self, checkpoints, False):
+            checkpoint: Checkpoint
+            if not checkpoint.moving and checkpoint.get_name() == 'End':
+                checkpoint.moving = True
+                # уровень пройден
+
     def collide_with_enemies(self):
         # Обработка столкновений с врагами (работает неправильно)
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
@@ -256,6 +275,7 @@ class MainHero(BaseHero):
         self.collide_with_spikes()
         self.collide_with_enemies()
         self.collide_with_fruits()
+        self.collide_with_checkpoints()
 
         self.rect.x += self.x_vel
         self.collide(self.x_vel, 0)

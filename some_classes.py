@@ -232,3 +232,43 @@ class Particles(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.x_vel, self.y_vel)
         self.start_frame += 1
 
+
+class Checkpoint(pygame.sprite.Sprite):
+    width, height = 64, 64
+
+    def __init__(self, x, y, name):
+        super().__init__(checkpoints, all_sprites)
+
+        self.rect = pygame.Rect(x, y, Checkpoint.width, Checkpoint.height)
+        self.image = pygame.Surface((Checkpoint.width, Checkpoint.height))
+
+        self.moving = True
+
+        if name == 'Start':
+            self.stay_anim = pyganim.PygAnimation(cut_sheet(
+                'Start/Idle.png', 1, 1, anim_delay=100))
+            self.moving_anim = pyganim.PygAnimation(cut_sheet(
+                'Start/Moving.png', 1, 17, anim_delay=100))
+        elif name == 'End':
+            self.stay_anim = pyganim.PygAnimation(cut_sheet(
+                'End/Idle.png', 1, 10, anim_delay=100))
+            self.moving_anim = pyganim.PygAnimation(cut_sheet(
+                'End/Moving.png', 1, 26, anim_delay=100))
+
+        self.stay_anim.play()
+        self.moving_anim.play()
+
+        self.name = name
+
+    def update(self):
+        self.image.fill('black')
+        self.image.set_colorkey('black')
+        if self.moving_anim.currentFrameNum + 1 == self.moving_anim.numFrames:
+            self.moving = False
+        if self.moving:
+            self.moving_anim.blit(self.image, (0, 0))
+        else:
+            self.stay_anim.blit(self.image, (0, 0))
+
+    def get_name(self):
+        return self.name
