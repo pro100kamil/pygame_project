@@ -101,7 +101,7 @@ class MainHero(BaseHero):
         self.height_jump = 10  # показатель высоты прыжка
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.got_hit = False  # Время последнего удара
-        self.health = heroes[name].health  # количество жизней
+        self.health = heroes[name].health + 100  # количество жизней
         # урон, который наносит герой при напрыгивании на врага
         self.damage = heroes[name].damage
 
@@ -178,7 +178,8 @@ class MainHero(BaseHero):
 
     def collide_with_checkpoints(self):
         # Обработка столкновений с флажками
-        for checkpoint in pygame.sprite.spritecollide(self, checkpoints, False):
+        for checkpoint in pygame.sprite.spritecollide(self, checkpoints,
+                                                      False):
             checkpoint: Checkpoint
             if not checkpoint.moving and checkpoint.get_name() == 'End':
                 checkpoint.moving = True
@@ -207,8 +208,7 @@ class MainHero(BaseHero):
             # движение по оси X или вверх по оси Y (герой получает урон)
             elif not self.got_hit:  # Если герой не в "шоке"
                 if isinstance(enemy, Chameleon):
-                    if not enemy.attack:
-                        enemy.attack = True
+                    enemy.start_attack()
                     if not pygame.sprite.collide_mask(self, enemy):
                         continue
                 self.health -= enemy.get_damage()
@@ -385,7 +385,6 @@ class MainHero(BaseHero):
             else self.rect.bottomleft[0] + 9
         y = self.rect.bottomleft[1] + 2
         Particles(self.direction, (x, y))
-
 
 
 if __name__ == "__main__":

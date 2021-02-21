@@ -21,6 +21,7 @@ class Platform(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Spikes(pygame.sprite.Sprite):

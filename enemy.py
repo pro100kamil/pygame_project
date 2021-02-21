@@ -27,7 +27,8 @@ class Enemy(pygame.sprite.Sprite):
         self.angle = 0
 
     def update(self):
-        self.rect = self.rect.move(0 if self.got_hit else self.x_vel, self.y_vel)
+        self.rect = self.rect.move(0 if self.got_hit else self.x_vel,
+                                   self.y_vel)
 
         self.image.fill('black')
         self.image.set_colorkey('black')
@@ -71,7 +72,8 @@ class Enemy(pygame.sprite.Sprite):
             self.x_vel, self.y_vel = 0, 8  # начальная скорость падения
 
             frame = self.animations['hit'].getCurrentFrame()
-            if self.animations['hit'].currentFrameNum + 1 == self.animations['hit'].numFrames:
+            if self.animations['hit'].currentFrameNum + 1 == self.animations[
+                'hit'].numFrames:
                 self.animations['hit'].pause()
             else:
                 self.animations['hit'].play()
@@ -350,10 +352,9 @@ class Slime(Enemy):
 
 
 class Chameleon(Enemy):
-    width, height = 84, 38
-
     def __init__(self, x, y):
-        super().__init__(x, y, Chameleon.width, Chameleon.height)
+        self.width, self.height = 84, 38
+        super().__init__(x, y, self.width, self.height)
 
         self.speed = 3
         self.x_vel, self.y_vel = -self.speed, 0
@@ -376,18 +377,26 @@ class Chameleon(Enemy):
         for anim in self.animations.values():
             anim.play()
 
-        self.mask = pygame.mask.from_surface(self.image)
-
         self.prev_x_vel = 0
 
         self.attack = False
 
+    def start_attack(self):
+        if not self.attack:
+            self.attack = True
+            # self.width, self.height = 84, 38
+            # self.rect.width, self.rect.height = self.width, self.height
+            # self.image = pygame.Surface((self.width, self.height))
+            # self.image.fill('black')
+            # self.image.set_colorkey('black')
+
     def flip(self):
         self.x_vel *= -1
+        # w, h =
         if self.x_vel > 0:
-            self.rect.x += Chameleon.width - Chameleon.height
+            self.rect.x += self.width - self.height
         elif self.x_vel < 0:
-            self.rect.x -= (Chameleon.width - Chameleon.height)
+            self.rect.x -= (self.width - self.height)
         for anim in self.animations.values():
             anim.flip(True, False)
 
@@ -419,10 +428,10 @@ class Chameleon(Enemy):
 
         if self.check_hit():
             return
-
+        # self.start_attack()
         player = list(player_group)[0]
         if self.x_vel >= 0 and \
-            self.rect.left > player.rect.right \
+                self.rect.left > player.rect.right \
                 and self.prev_x_vel >= 0 or \
                 self.x_vel <= 0 and \
                 self.rect.right < player.rect.left \
@@ -440,5 +449,13 @@ class Chameleon(Enemy):
             self.animations['run'].blit(self.image, (0, 0))
 
         # анимация атаки закончилась
-        if self.animations['attack'].currentFrameNum + 1 == self.animations['attack'].numFrames:
+        if self.attack and \
+                self.animations['attack'].currentFrameNum + 1 == \
+                self.animations['attack'].numFrames:
             self.attack = False
+            # self.width, self.height = 38, 38
+            # self.rect.width, self.rect.height = self.width, self.height
+            # self.image = pygame.Surface((self.width, self.height))
+            # self.image.fill('black')
+            # self.image.set_colorkey('black')
+            # self.image.width, self.image.height = self.width, self.height

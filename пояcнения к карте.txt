@@ -3,3 +3,4 @@
 . - шипы
 b - BouncedEnemy
 w - WalkingEnemy
+h - Chameleon
