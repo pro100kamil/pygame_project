@@ -79,6 +79,12 @@ class Bullet(pygame.sprite.Sprite):
         # урон, который получит персонаж, если в него попадёт пуля
         self.damage = 10
 
+    def get_damage(self):
+        return self.damage
+
+    def get_direction(self):
+        return self.direction
+
     def move(self):
         if self.direction == "right":
             self.rect.x += self.delta
