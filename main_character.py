@@ -164,7 +164,7 @@ class MainHero(BaseHero):
                 self.y_vel = 0
 
     def collide_with_fruits(self):
-        # Обработка столкновений с фруктами (взятие фрукта)
+        """Обработка столкновений с фруктами (взятие фрукта)"""
         for fruit in fruits_group:
             fruit: Fruit
             if not fruit.is_collected() and pygame.sprite.collide_mask(self,
@@ -177,7 +177,7 @@ class MainHero(BaseHero):
                 fruit.collect()  # Собрать фрукт
 
     def collide_with_checkpoints(self):
-        # Обработка столкновений с флажками
+        """Обработка столкновений с флажками"""
         for checkpoint in pygame.sprite.spritecollide(self, checkpoints,
                                                       False):
             checkpoint: Checkpoint
@@ -186,7 +186,26 @@ class MainHero(BaseHero):
                 # уровень пройден
 
     def collide_with_enemies(self):
-        # Обработка столкновений с врагами (работает неправильно)
+        """Обработка столкновений с врагами"""
+        for enemy in chameleons:
+            enemy_head = pygame.rect.Rect(
+                enemy.rect2.x + (enemy.rect2.width / 4),
+                enemy.rect2.y, enemy.rect2.width / 2,
+                enemy.rect2.height / 4)
+            if pygame.rect.Rect.colliderect(self.rect, enemy_head):
+                continue
+            if pygame.Rect.colliderect(self.rect, enemy.rect):
+                enemy.start_attack()
+                self.health -= enemy.get_damage()
+                print("Жизни героя", self.health)  # для отладки
+                if self.health <= 0:
+                    self.defeat()
+                    break
+
+                self.got_hit = pygame.time.get_ticks()  # Время последнего удара
+                enemy_x_vel = enemy.get_x_vel()
+                self.x_vel = enemy_x_vel * 2
+                self.y_vel = -5
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
             enemy: Enemy
             # Имитация головы врага (тестовый вариант)
@@ -198,7 +217,8 @@ class MainHero(BaseHero):
             if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect,
                                                                enemy_head):
                 if isinstance(enemy, Chameleon) \
-                        and not pygame.sprite.collide_mask(self, enemy):
+                        and not pygame.Rect.colliderect(self.rect,
+                                                        enemy.rect2):
                     continue
                 print('герой наносит урон')
                 self.y_vel = -7  # Отскок вверх при прыжке на врага сверху
@@ -208,9 +228,7 @@ class MainHero(BaseHero):
             # движение по оси X или вверх по оси Y (герой получает урон)
             elif not self.got_hit:  # Если герой не в "шоке"
                 if isinstance(enemy, Chameleon):
-                    enemy.start_attack()
-                    if not pygame.sprite.collide_mask(self, enemy):
-                        continue
+                    continue
                 self.health -= enemy.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
@@ -219,7 +237,7 @@ class MainHero(BaseHero):
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
                 enemy_x_vel = enemy.get_x_vel()
-                # Изменение векторов скоростей в соответствии со старыми. Было переработано
+                # Изменение векторов скоростей в соответствии со старыми.
                 if enemy_x_vel < 0 and self.x_vel == 0:
                     self.x_vel = -5
                 elif enemy_x_vel > 0 and self.x_vel == 0:
@@ -228,7 +246,6 @@ class MainHero(BaseHero):
                     self.x_vel = 5
                 elif self.direction == 'right':
                     self.x_vel = -5
-
                 self.y_vel = -5
 
     def collide_with_spikes(self):
