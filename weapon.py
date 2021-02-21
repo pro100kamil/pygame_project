@@ -72,12 +72,11 @@ class Bullet(pygame.sprite.Sprite):
         self.image.set_colorkey('black')
 
         self.direction = direction
-        if self.direction == "right":
-            Shuriken.move_anim.flip(True, False)
+
         self.range_flight = range_flight  # дальность полёта
         self.delta = self.range_flight / 26
-        self.flown = 0  # сколько сюрикен уже пролетел
-        # урон, который получит персонаж, если в него попадёт сюрикен
+        self.flown = 0  # сколько пуля уже пролетела
+        # урон, который получит персонаж, если в него попадёт пуля
         self.damage = 10
 
     def move(self):

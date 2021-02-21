@@ -389,8 +389,12 @@ class Chameleon(Enemy):
         self.attack = False
 
     def start_attack(self):
+        """Начинает атаку, если она ещё не идёт"""
         if not self.attack:
             self.attack = True
+            return True
+        else:
+            return False
 
     def flip(self):
         self.x_vel *= -1
@@ -594,6 +598,12 @@ class Plant(Enemy):
     def update(self):
         super().update()
 
+        if self.defeat():
+            return
+
+        if self.check_hit():
+            return
+
         if self.attack:
             self.animations['attack'].blit(self.image, (0, 0))
             # На пятой анимации атаки выпускается пуля
@@ -609,12 +619,6 @@ class Plant(Enemy):
 
                 self.animations['attack'].stop()
                 self.attack = False
-            return
-
-        if self.defeat():
-            return
-
-        if self.check_hit():
             return
 
         # атака раз в 1300 ms
