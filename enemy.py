@@ -69,6 +69,7 @@ class Enemy(pygame.sprite.Sprite):
         # Метод, отвечающий за смерть врага
 
         if self.health == 0:
+            self.damage = 0
             self.x_vel, self.y_vel = 0, 8  # начальная скорость падения
 
             frame = self.animations['hit'].getCurrentFrame()
@@ -233,7 +234,7 @@ class Mushroom(Enemy):
     width, height = 32, 32
 
     def __init__(self, x, y, speed, max_length):
-        super().__init__(x, y, WalkingEnemy.width, WalkingEnemy.height)
+        super().__init__(x, y, Mushroom.width, Mushroom.height)
         self.x_vel, self.y_vel = speed, 0
         self.max_length = max_length
         self.health = 10  # количество жизней
@@ -455,3 +456,89 @@ class Chameleon(Enemy):
                 self.animations['attack'].currentFrameNum + 1 == \
                 self.animations['attack'].numFrames:
             self.attack = False
+
+
+class Rino(Enemy):
+    width, height = 52, 34
+
+    def __init__(self, x, y):
+        super().__init__(x, y, Rino.width, Rino.height)
+        speed = 14
+        self.x_vel, self.y_vel = -speed, 0
+        self.prev_x_vel = 0
+        self.health = 60  # количество жизней
+        self.damage = 25  # урон, который наносит враг при атаке
+
+        self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
+            'Rino/Hit.png', 1, 5, anim_delay=100)),
+
+            'hit_wall': pyganim.PygAnimation(cut_sheet(
+                'Rino/Hit Wall.png', 1, 4, anim_delay=100)),
+
+            'run': pyganim.PygAnimation(cut_sheet(
+                'Rino/Run.png', 1, 6, anim_delay=100)),
+
+            'stay': pyganim.PygAnimation(cut_sheet(
+                'Rino/Idle.png', 1, 11, anim_delay=100))
+        }
+
+        self.hit_wall = False
+
+        for anim in self.animations.values():
+            anim.play()
+
+    def flip(self):
+        self.x_vel *= -1
+        for anim in self.animations.values():
+            anim.flip(True, False)
+
+    def collide(self):
+        if not self.on_ground:
+            check_on_ground = pygame.sprite.spritecollideany(self, platforms)
+            if check_on_ground is None:
+                self.y_vel += GRAVITY
+            else:
+                self.rect.bottom = check_on_ground.rect.top
+                self.y_vel = 0
+                self.on_ground = True
+
+        for platform in pygame.sprite.spritecollide(self, platforms, False):
+            if self.x_vel < 0:
+                self.rect.left = platform.rect.right
+
+            elif self.x_vel > 0:
+                self.rect.right = platform.rect.left
+
+            self.animations['hit_wall'].play()
+            self.hit_wall = True
+            self.prev_x_vel = self.x_vel
+            self.x_vel = 0
+
+    def update(self):
+        super().update()
+
+        if self.got_hit:  # носорог не останавливается, если его атаковали
+            self.rect = self.rect.move(self.x_vel, 0)
+
+        if self.defeat():
+            return
+
+        if not self.hit_wall:
+            self.collide()
+
+        if self.check_hit():
+            return
+
+        if self.hit_wall:
+            # анимация удара об стену закончилась
+            self.animations['hit_wall'].blit(self.image, (0, 0))
+            if self.animations['hit_wall'].currentFrameNum + 1 == \
+                    self.animations['hit_wall'].numFrames:
+                self.animations['hit_wall'].stop()
+                self.hit_wall = False
+                self.x_vel = self.prev_x_vel
+                self.flip()
+        elif self.x_vel == 0:
+            self.animations['stay'].blit(self.image, (0, 0))
+        else:
+            self.animations['run'].blit(self.image, (0, 0))

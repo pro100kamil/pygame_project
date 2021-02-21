@@ -12,7 +12,7 @@ from some_classes import *
 from weapon import Shuriken
 
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-MAIN_HERO = 'Ninja Frog'
+MAIN_HERO = 'Mask Dude'
 # name: (damage, speed, health)
 heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
           'Pink Man': hero_parameters(20, 4, 120),
@@ -61,6 +61,11 @@ def load_level(filename):
                 Slime(x * TILE_SIDE, y * TILE_SIDE, -1, 100)
             elif elem == 'h':
                 Chameleon(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == 'r':
+                Rino(
+                    x * TILE_SIDE - (TILE_SIDE - Rino.width),
+                    y * TILE_SIDE + (TILE_SIDE - Rino.height)
+                )
             elif elem == '@':
                 new_player = MainHero(
                     x * TILE_SIDE - (TILE_SIDE - MainHero.width),
@@ -101,7 +106,7 @@ class MainHero(BaseHero):
         self.height_jump = 10  # показатель высоты прыжка
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.got_hit = False  # Время последнего удара
-        self.health = heroes[name].health + 100  # количество жизней
+        self.health = heroes[name].health  # количество жизней
         # урон, который наносит герой при напрыгивании на врага
         self.damage = heroes[name].damage
 
@@ -214,13 +219,14 @@ class MainHero(BaseHero):
                 enemy.rect.y, enemy.rect.width / 2,
                 enemy.rect.height / 4)
 
-            if self.y_vel > 0 and pygame.rect.Rect.colliderect(self.rect,
+            if self.y_vel > 1 and pygame.rect.Rect.colliderect(self.rect,
                                                                enemy_head):
                 if isinstance(enemy, Chameleon) \
                         and not pygame.Rect.colliderect(self.rect,
                                                         enemy.rect2):
                     continue
                 print('герой наносит урон')
+
                 self.y_vel = -7  # Отскок вверх при прыжке на врага сверху
                 self.rect.bottom = enemy.rect.top  # Чтобы не было множественного удара
                 enemy.get_hit(self.damage)
@@ -238,20 +244,17 @@ class MainHero(BaseHero):
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
                 enemy_x_vel = enemy.get_x_vel()
                 # Изменение векторов скоростей в соответствии со старыми.
-                if enemy_x_vel < 0 and self.x_vel == 0:
-                    self.x_vel = -5
-                elif enemy_x_vel > 0 and self.x_vel == 0:
-                    self.x_vel = 5
-                elif self.direction == 'left':
-                    self.x_vel = 5
-                elif self.direction == 'right':
-                    self.x_vel = -5
+                delta = 9 if isinstance(enemy, Rino) else 5
+                if enemy_x_vel < 0:
+                    self.x_vel = -delta
+                elif enemy_x_vel > 0:
+                    self.x_vel = delta
                 self.y_vel = -5
 
     def collide_with_spikes(self):
-        # Обработка столкновений с шипами
+        """Обработка столкновений с шипами"""
         for spike in spikes_group:
-            # spike: Spikes
+            spike: Spikes
             # Если герой не в "шоке"
             if not self.got_hit and pygame.sprite.collide_mask(self, spike):
                 self.health -= spike.get_damage()
@@ -406,6 +409,8 @@ class MainHero(BaseHero):
 
 if __name__ == "__main__":
     running = True
+    pause = False
+
     clock = pygame.time.Clock()
 
     player, level_x, level_y = load_level('map.txt')
@@ -418,8 +423,13 @@ if __name__ == "__main__":
                 running = False
             if event.type == pygame.KEYDOWN:
                 # через события, чтобы вылетал один сюрикен
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN and not pause:
                     player.attack()
+                elif event.key == pygame.K_p:
+                    pause = not pause
+
+        if pause:
+            continue
 
         game_screen.fill(pygame.Color("light blue"))
         screen.fill(pygame.Color("#11A550"))
