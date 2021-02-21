@@ -66,6 +66,16 @@ def load_level(filename):
                     x * TILE_SIDE - (TILE_SIDE - Rino.width),
                     y * TILE_SIDE + (TILE_SIDE - Rino.height)
                 )
+            elif elem == 'p':
+                Plant(
+                    x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
+                    y * TILE_SIDE + (TILE_SIDE - Plant.height), "right"
+                )
+            elif elem == 'P':
+                Plant(
+                    x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
+                    y * TILE_SIDE + (TILE_SIDE - Plant.height), "left"
+                )
             elif elem == '@':
                 new_player = MainHero(
                     x * TILE_SIDE - (TILE_SIDE - MainHero.width),
@@ -148,6 +158,21 @@ class MainHero(BaseHero):
 
     def get_direction(self):
         return self.direction
+
+    def get_hit(self, damage, direction):
+        self.health -= damage
+        print("Жизни героя", self.health)  # для отладки
+        if self.health <= 0:
+            self.defeat()
+
+        self.got_hit = pygame.time.get_ticks()  # Время последнего удара
+        # Изменение векторов скоростей в соответствии со старыми.
+        delta = 5
+        if direction == 'left':
+            self.x_vel = -delta
+        else:
+            self.x_vel = delta
+        self.y_vel = -5
 
     def collide(self, x_vel, y_vel):
         """Обработка столкновений с платформами"""

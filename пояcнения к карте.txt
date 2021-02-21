@@ -4,3 +4,6 @@
 b - BouncedEnemy
 w - WalkingEnemy
 h - Chameleon
+r - Rino
+p - Plant, смотрящий вправо
+P - Plant, смотрящий влево

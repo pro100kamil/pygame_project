@@ -6,6 +6,7 @@ import pyganim
 
 from constants import *
 from functions import *
+from weapon import Bullet
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -34,6 +35,8 @@ class Enemy(pygame.sprite.Sprite):
         self.image.set_colorkey('black')
 
     def get_hit(self, damage):
+        if not self.health:
+            return
         self.health -= damage
         self.got_hit = pygame.time.get_ticks()
 
@@ -542,3 +545,78 @@ class Rino(Enemy):
             self.animations['stay'].blit(self.image, (0, 0))
         else:
             self.animations['run'].blit(self.image, (0, 0))
+
+
+class Plant(Enemy):
+    width, height = 44, 42
+
+    def __init__(self, x, y, direction):
+        super().__init__(x, y, Plant.width, Plant.height)
+        self.x_vel, self.y_vel = 0, 0
+        self.prev_x_vel = 0
+        self.direction = direction
+        self.health = 65  # количество жизней
+        self.damage = 25  # урон, который наносит враг при атаке
+
+        self.last_attack = pygame.time.get_ticks()  # Время последнего удара
+
+        self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
+            'Plant/Hit.png', 1, 5, anim_delay=100)),
+
+            'attack': pyganim.PygAnimation(cut_sheet(
+                'Plant/Attack.png', 1, 8, anim_delay=100)),
+
+            'stay': pyganim.PygAnimation(cut_sheet(
+                'Plant/Idle.png', 1, 11, anim_delay=100))
+        }
+
+        if self.direction == "right":
+            self.flip()
+
+        self.attack = False   # идёт ли сейчас атака
+        self.bullet_fired = False  # выпущена ли пуля на текущей атаке
+
+        self.animations['stay'].play()
+
+    def flip(self):
+        for anim in self.animations.values():
+            anim.flip(True, False)
+
+    def start_attack(self):
+        """Атака plant"""
+        self.last_attack = pygame.time.get_ticks()
+        self.attack = True
+        self.bullet_fired = False
+        self.animations['attack'].play()
+
+    def update(self):
+        super().update()
+
+        if self.attack:
+            self.animations['attack'].blit(self.image, (0, 0))
+            # На пятой анимации атаки выпускается пуля
+            if self.animations['attack'].currentFrameNum == 5 \
+                    and not self.bullet_fired:
+                self.bullet_fired = True
+                Bullet(self.rect.right
+                       if self.direction == "right" else self.rect.left,
+                       self.rect.top + 6, self.direction).move()
+            # анимация атаки закончилась
+            if self.animations['attack'].currentFrameNum + 1 == \
+                    self.animations['attack'].numFrames:
+
+                self.animations['attack'].stop()
+                self.attack = False
+            return
+
+        if self.defeat():
+            return
+
+        if self.check_hit():
+            return
+
+        # атака раз в 1300 ms
+        if pygame.time.get_ticks() - self.last_attack > 1300 and not self.attack:
+            self.start_attack()
+        else:
+            self.animations['stay'].blit(self.image, (0, 0))

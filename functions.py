@@ -16,6 +16,19 @@ def cut_sheet(filename, rows, cols, anim_delay):
     return frames
 
 
+def cut_image(sheet, rows, cols, anim_delay):
+    picture_w, picture_h = sheet.get_width() // cols, sheet.get_height() // rows
+    frames = []
+    for y in range(rows):
+        for x in range(cols):
+            frame_location = (picture_w * x, picture_h * y)
+            frames.append((sheet.subsurface(frame_location,
+                                            (picture_w, picture_h)),
+                           anim_delay))
+
+    return frames
+
+
 def load_image(name, color_key=None):
     """Загрузка изображения"""
     fullname = os.path.join('data', name)
