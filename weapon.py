@@ -57,7 +57,7 @@ class Bullet(pygame.sprite.Sprite):
     width, height = 22, 22
 
     def __init__(self, x, y, direction, range_flight=300):
-        super().__init__(all_sprites)
+        super().__init__(all_sprites, bullets_group)
 
         self.rect = pygame.Rect(x, y, Bullet.width, Bullet.height)
         self.image = pygame.Surface((Bullet.width, Bullet.height))
@@ -89,9 +89,6 @@ class Bullet(pygame.sprite.Sprite):
         self.move_anim.blit(self.image, (0, 0))
 
     def update(self):
-        for player in pygame.sprite.spritecollide(self, player_group, False):
-            player.get_hit(self.damage, self.direction)
-            self.kill()
         if self.flown + self.delta <= self.range_flight and \
                 not pygame.sprite.spritecollideany(self, platforms) and \
                 not pygame.sprite.spritecollideany(self, spikes_group):
@@ -99,3 +96,9 @@ class Bullet(pygame.sprite.Sprite):
         else:  # полёт закончен
             self.flown = 0
             self.kill()
+
+    def get_damage(self):
+        return self.damage
+
+    def get_direction(self):
+        return self.direction

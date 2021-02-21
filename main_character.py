@@ -122,6 +122,9 @@ class MainHero(BaseHero):
 
         self.number_shurikens = 20  # кол-во оставшихся сюрикенов
 
+        self.transparency = 255
+        self.angle = 0
+
         self.mask = pygame.mask.from_surface(self.image)
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
@@ -158,22 +161,6 @@ class MainHero(BaseHero):
 
     def get_direction(self):
         return self.direction
-
-    def get_hit(self, damage, direction):
-        """Пуля попадает в героя"""
-        self.health -= damage
-        print("Жизни героя", self.health)  # для отладки
-        if self.health <= 0:
-            self.defeat()
-
-        self.got_hit = pygame.time.get_ticks()  # Время последнего удара
-        # Изменение векторов скоростей в соответствии со старыми.
-        delta = 5
-        if direction == 'left':
-            self.x_vel = -delta
-        else:
-            self.x_vel = delta
-        self.y_vel = -5
 
     def collide(self, x_vel, y_vel):
         """Обработка столкновений с платформами"""
@@ -230,7 +217,7 @@ class MainHero(BaseHero):
                 self.health -= enemy.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
-                    self.defeat()
+                    self.health = 0
                     break
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
@@ -241,8 +228,8 @@ class MainHero(BaseHero):
             enemy: Enemy
             # Имитация головы врага (тестовый вариант)
             enemy_head = pygame.rect.Rect(
-                enemy.rect.x + (enemy.rect.width / 4),
-                enemy.rect.y, enemy.rect.width / 2,
+                enemy.rect.x + (enemy.rect.width / 5),
+                enemy.rect.y, enemy.rect.width / 5 * 3,
                 enemy.rect.height / 4)
 
             if self.y_vel > 1 and pygame.rect.Rect.colliderect(self.rect,
@@ -264,8 +251,8 @@ class MainHero(BaseHero):
                 self.health -= enemy.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
-                    self.defeat()
-                    break
+                    self.health = 0
+                    return
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
                 enemy_x_vel = enemy.get_x_vel()
@@ -290,8 +277,8 @@ class MainHero(BaseHero):
                 self.health -= spike.get_damage()
                 print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
-                    self.defeat()
-                    break
+                    self.health = 0
+                    return
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
 
@@ -305,12 +292,30 @@ class MainHero(BaseHero):
 
                 self.y_vel = -5 if self.y_vel > 0 else 5
 
+    def collide_with_bullets(self):
+        """Пуля попадает в героя"""
+        for bullet in pygame.sprite.spritecollide(self, bullets_group, True):
+            bullet: Bullet
+            self.health -= bullet.get_damage()
+            print("Жизни героя", self.health)  # для отладки
+            if self.health <= 0:
+                self.health = 0
+                return
+
+            self.got_hit = pygame.time.get_ticks()  # Время последнего удара
+            # Изменение векторов скоростей в соответствии со старыми.
+            delta = 5
+            if bullet.get_direction() == 'left':
+                self.x_vel = -delta
+            else:
+                self.x_vel = delta
+            self.y_vel = -5
+
     def update(self):
         super().update()
 
         if not self.health:  # герой повержен
-            self.rect.y += 5
-            self.animations['stay'].blit(self.image, (0, 0))
+            self.defeat()
             return
 
         # флаг, нужна ли ещё анимация в текущем обновлении
@@ -326,6 +331,7 @@ class MainHero(BaseHero):
         self.collide_with_enemies()
         self.collide_with_fruits()
         self.collide_with_checkpoints()
+        self.collide_with_bullets()
 
         self.rect.x += self.x_vel
         self.collide(self.x_vel, 0)
@@ -404,7 +410,7 @@ class MainHero(BaseHero):
                     flag_anim = False
 
         if pygame.key.get_pressed()[pygame.K_f]:
-            self.defeat()
+            self.health = 0
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
@@ -427,8 +433,31 @@ class MainHero(BaseHero):
 
     def defeat(self):
         """Поражение героя"""
-        self.health = 0  # чтобы здоровье не было отрицательным
-        self.animations['stay'].flip(False, True)
+
+        self.x_vel, self.y_vel = 0, 8  # начальная скорость падения
+
+        self.rect = self.rect.move(self.x_vel, self.y_vel)
+
+        frame = self.animations['hit'].getCurrentFrame()
+        if self.animations['hit'].currentFrameNum + 1 == self.animations[
+            'hit'].numFrames:
+            self.animations['hit'].pause()
+        else:
+            self.animations['hit'].play()
+
+        # Меняем rect при вращении изображения врага
+        old_center = self.rect.center
+        self.image = pygame.transform.rotate(frame, self.angle)
+        self.image.set_alpha(self.transparency)
+        self.rect = self.image.get_rect()
+        self.rect.center = old_center
+
+        self.angle = (self.angle + 5) % 360  # Угол вращения
+        self.transparency -= 5
+
+        # если враг исчезает, то уничтожаем спрайт
+        if self.transparency <= 0:
+            self.kill()
 
     def make_dust_particles(self):
         x = self.rect.bottomright[0] - 9 if self.direction == 'left' \
@@ -471,12 +500,14 @@ if __name__ == "__main__":
             camera.update(player)
         # обновляем положение всех спрайтов
         for sprite in all_sprites:
-            if not issubclass(type(sprite), Enemy):
+            if not issubclass(type(sprite), Enemy) and not isinstance(sprite, MainHero):
                 game_screen.blit(sprite.image, camera.apply(sprite))
 
         # рисуем врагов отдельно, чтобы они не были над другими текстурами
         for sprite in enemies_group:
             game_screen.blit(sprite.image, camera.apply(sprite))
+
+        game_screen.blit(player.image, camera.apply(player))
 
         screen.blit(game_screen, (0, TILE_SIDE))
 

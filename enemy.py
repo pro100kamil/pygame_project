@@ -435,17 +435,19 @@ class Chameleon(Enemy):
         if self.check_hit():
             return
 
-        player = list(player_group)[0]
-        if self.x_vel >= 0 and \
-                self.rect.left > player.rect.right \
-                and self.prev_x_vel >= 0 or \
-                self.x_vel <= 0 and \
-                self.rect.right < player.rect.left \
-                and self.prev_x_vel <= 0:
-            if self.x_vel == 0:
-                self.x_vel = self.prev_x_vel
-                self.prev_x_vel = 0
-            self.flip()
+        players = list(player_group)
+        if players:
+            player = players[0]
+            if self.x_vel >= 0 and \
+                    self.rect.left > player.rect.right \
+                    and self.prev_x_vel >= 0 or \
+                    self.x_vel <= 0 and \
+                    self.rect.right < player.rect.left \
+                    and self.prev_x_vel <= 0:
+                if self.x_vel == 0:
+                    self.x_vel = self.prev_x_vel
+                    self.prev_x_vel = 0
+                self.flip()
 
         if self.attack:
             self.animations['attack'].blit(self.image, (0, 0))
