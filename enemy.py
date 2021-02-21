@@ -590,9 +590,7 @@ class Plant(Enemy):
 
     def start_attack(self):
         """Растение начинает атаку"""
-        self.last_attack = pygame.time.get_ticks()
         self.attack = True
-        self.bullet_fired = False
         self.animations['attack'].play()
 
     def update(self):
@@ -603,6 +601,12 @@ class Plant(Enemy):
 
         if self.check_hit():
             return
+
+        # атака раз в 1300 ms
+        if pygame.time.get_ticks() - self.last_attack > 1300:
+            self.start_attack()
+        else:
+            self.animations['stay'].blit(self.image, (0, 0))
 
         if self.attack:
             self.animations['attack'].blit(self.image, (0, 0))
@@ -619,10 +623,6 @@ class Plant(Enemy):
 
                 self.animations['attack'].stop()
                 self.attack = False
-            return
-
-        # атака раз в 1300 ms
-        if pygame.time.get_ticks() - self.last_attack > 1300:
-            self.start_attack()
-        else:
-            self.animations['stay'].blit(self.image, (0, 0))
+                self.bullet_fired = False  # Атака закончилась - выстрел пули прекратился
+                # Время начинает отсчитываться именно тогда, когда атака закончилась
+                self.last_attack = pygame.time.get_ticks()
