@@ -160,6 +160,7 @@ class MainHero(BaseHero):
         return self.direction
 
     def get_hit(self, damage, direction):
+        """Пуля попадает в героя"""
         self.health -= damage
         print("Жизни героя", self.health)  # для отладки
         if self.health <= 0:
@@ -270,10 +271,14 @@ class MainHero(BaseHero):
                 enemy_x_vel = enemy.get_x_vel()
                 # Изменение векторов скоростей в соответствии со старыми.
                 delta = 9 if isinstance(enemy, Rino) else 5
-                if enemy_x_vel < 0:
+                if enemy_x_vel < 0 and self.x_vel == 0:
                     self.x_vel = -delta
-                elif enemy_x_vel > 0:
+                elif enemy_x_vel > 0 and self.x_vel == 0:
                     self.x_vel = delta
+                elif self.direction == 'left':
+                    self.x_vel = delta
+                elif self.direction == 'right':
+                    self.x_vel = -delta
                 self.y_vel = -5
 
     def collide_with_spikes(self):

@@ -583,7 +583,7 @@ class Plant(Enemy):
             anim.flip(True, False)
 
     def start_attack(self):
-        """Атака plant"""
+        """Растение начинает атаку"""
         self.last_attack = pygame.time.get_ticks()
         self.attack = True
         self.bullet_fired = False
@@ -616,7 +616,7 @@ class Plant(Enemy):
             return
 
         # атака раз в 1300 ms
-        if pygame.time.get_ticks() - self.last_attack > 1300 and not self.attack:
+        if pygame.time.get_ticks() - self.last_attack > 1300:
             self.start_attack()
         else:
             self.animations['stay'].blit(self.image, (0, 0))
