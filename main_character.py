@@ -52,6 +52,8 @@ def load_level(filename):
             elif elem == '.':
                 # Spikes(x * TILE_SIDE, y * TILE_SIDE)
                 Chicken(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == 'o':
+                AngryPig(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '*':
                 Fruit(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '2':

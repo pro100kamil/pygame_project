@@ -280,6 +280,54 @@ class Slime(WalkingEnemy):
             anim.play()
 
 
+class AngryPig(WalkingEnemy):
+    width, height = 36, 30
+
+    def __init__(self, x, y):
+        super().__init__(x, y, AngryPig.width, AngryPig.height)
+        speed, max_length = 2, 400
+        self.x_vel, self.y_vel = -speed, 0
+        self.max_length = max_length
+        self.health = 65  # количество жизней
+        self.damage = 10  # урон, который наносит враг при атаке
+        self.is_angry = False
+
+        self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
+            'AngryPig/Hit1.png', 1, 5, anim_delay=100)),
+
+            'run': pyganim.PygAnimation(cut_sheet(
+                'AngryPig/Walk.png', 1, 16, anim_delay=100)),
+
+            'stay': pyganim.PygAnimation(
+                cut_sheet('AngryPig/Idle.png', 1, 9, anim_delay=100))}
+
+        for anim in self.animations.values():
+            anim.play()
+
+    def check_hit(self):
+        # Проверка на наличие удара от ГГ
+
+        if self.got_hit and pygame.time.get_ticks() - self.got_hit < 500:
+            self.animations['hit'].play()
+            self.animations['hit'].blit(self.image, (0, 0))
+            return True
+
+        if self.got_hit:
+            # когда первая hit-анимация, проходит поросёнок становится злым
+            self.animations['hit'].stop()
+            if not self.is_angry:
+                self.is_angry = True
+                self.x_vel = 6 if self.x_vel > 0 else -6
+                self.damage = 25
+                self.animations['run'] = pyganim.PygAnimation(cut_sheet(
+                    'AngryPig/Run.png', 1, 12, anim_delay=100))
+                self.animations['hit'] = pyganim.PygAnimation(cut_sheet(
+                    'AngryPig/Hit2.png', 1, 5, anim_delay=100))
+                self.animations['run'].play()
+            self.got_hit = False
+        return False
+
+
 class Chameleon(Enemy):
     def __init__(self, x, y):
         self.width, self.height = 84, 38
