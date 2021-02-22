@@ -137,6 +137,7 @@ class MainHero(BaseHero):
         # Последний сбор буста. Нужно для вычисления остатка действия зелья
         self.last_boost = False
         self.key_up_is_raised = False
+        self.is_appeared = False
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -156,8 +157,13 @@ class MainHero(BaseHero):
                 f'{name}/Run.png', 1, 12, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(cut_sheet(
-                f'{name}/Idle.png', 1, 11, anim_delay=100))
-        }
+                f'{name}/Idle.png', 1, 11, anim_delay=100)),
+
+            'appear': pyganim.PygAnimation(cut_sheet(
+                'Appearing.png', 1, 7, anim_delay=100)),
+
+            'disappear': pyganim.PygAnimation(cut_sheet(
+                'Disappearing.png', 1, 7, anim_delay=100))}
         for anim in self.animations.values():
             anim.play()
 
@@ -339,6 +345,17 @@ class MainHero(BaseHero):
 
     def update(self):
         super().update()
+
+        # Анимация появления игрока
+        if not self.is_appeared:
+            self.animations['appear'].play()
+            self.animations['appear'].blit(self.image, (0, 0))
+
+            if self.animations['appear'].currentFrameNum + 1 == \
+                    self.animations['appear'].numFrames:
+                self.is_appeared = True
+                self.animations['appear'].stop()
+            return
 
         if not self.health:  # герой повержен
             self.defeat()
