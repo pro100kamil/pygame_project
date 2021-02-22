@@ -212,7 +212,6 @@ class MainHero(BaseHero):
         for potion in potions_group:
             potion: Potion
             if not potion.is_collected() and pygame.sprite.collide_mask(self, potion):
-                self.last_speed = self.speed
                 self.speed = self.last_speed + potion.get_speedup()
                 self.boost_duration = potion.get_duration()
                 self.last_boost = pygame.time.get_ticks()
@@ -380,7 +379,6 @@ class MainHero(BaseHero):
         if self.last_boost and now - self.last_boost > self.boost_duration:
             self.speed = self.last_speed
             self.last_boost = False
-
 
         if self.double_jump:
             self.animations['double_jump'].blit(self.image, (0, 0))
