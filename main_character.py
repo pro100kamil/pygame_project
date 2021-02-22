@@ -49,6 +49,9 @@ def load_level(filename):
             elif elem == '`':
                 Saw(x * TILE_SIDE, y * TILE_SIDE)
                 # Spikes(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == '.':
+                # Spikes(x * TILE_SIDE, y * TILE_SIDE)
+                Chicken(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '*':
                 Fruit(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '2':

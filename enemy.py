@@ -170,25 +170,6 @@ class BouncedEnemy(Enemy):
 class WalkingEnemy(Enemy):
     width, height = 32, 34
 
-    def __init__(self, x, y, speed, max_length):
-        super().__init__(x, y, WalkingEnemy.width, WalkingEnemy.height)
-        self.x_vel, self.y_vel = speed, 0
-        self.max_length = max_length
-        self.health = 25  # количество жизней
-        self.damage = 15  # урон, который наносит враг при атаке
-
-        self.animations = {'run': pyganim.PygAnimation(cut_sheet(
-            'Chicken/Run.png', 1, 14, anim_delay=100)),
-
-            'stay': pyganim.PygAnimation(cut_sheet(
-                'Chicken/Idle.png', 1, 13, anim_delay=100)),
-
-            'hit': pyganim.PygAnimation(cut_sheet(
-                'Chicken/Hit.png', 1, 5, anim_delay=100))}
-
-        for anim in self.animations.values():
-            anim.play()
-
     def collide(self):
         if not self.on_ground:
             check_on_ground = pygame.sprite.spritecollideany(self, platforms)
@@ -209,7 +190,7 @@ class WalkingEnemy(Enemy):
                 self.flip()
 
     def flip(self):
-        self.x_vel = -self.x_vel
+        self.x_vel *= -1
         for anim in self.animations.values():
             anim.flip(True, False)
 
@@ -233,7 +214,31 @@ class WalkingEnemy(Enemy):
             self.animations['run'].blit(self.image, (0, 0))
 
 
-class Mushroom(Enemy):
+class Chicken(WalkingEnemy):
+    width, height = 32, 34
+
+    def __init__(self, x, y):
+        super().__init__(x, y, WalkingEnemy.width, WalkingEnemy.height)
+        speed, max_length = 3, 200
+        self.x_vel, self.y_vel = -speed, 0
+        self.max_length = max_length
+        self.health = 25  # количество жизней
+        self.damage = 15  # урон, который наносит враг при атаке
+
+        self.animations = {'run': pyganim.PygAnimation(cut_sheet(
+            'Chicken/Run.png', 1, 14, anim_delay=100)),
+
+            'stay': pyganim.PygAnimation(cut_sheet(
+                'Chicken/Idle.png', 1, 13, anim_delay=100)),
+
+            'hit': pyganim.PygAnimation(cut_sheet(
+                'Chicken/Hit.png', 1, 5, anim_delay=100))}
+
+        for anim in self.animations.values():
+            anim.play()
+
+
+class Mushroom(WalkingEnemy):
     width, height = 32, 32
 
     def __init__(self, x, y, speed, max_length):
@@ -255,49 +260,8 @@ class Mushroom(Enemy):
         for anim in self.animations.values():
             anim.play()
 
-    def flip(self):
-        self.x_vel = -self.x_vel
-        for anim in self.animations.values():
-            anim.flip(True, False)
 
-    def collide(self):
-        if not self.on_ground:
-            check_on_ground = pygame.sprite.spritecollideany(self, platforms)
-            if check_on_ground is None:
-                self.y_vel += GRAVITY
-            else:
-                self.rect.bottom = check_on_ground.rect.top
-                self.y_vel = 0
-                self.on_ground = True
-
-        for platform in pygame.sprite.spritecollide(self, platforms, False):
-            if self.x_vel < 0:
-                self.flip()
-
-            elif self.x_vel > 0:
-                self.flip()
-
-    def update(self):
-        super().update()
-
-        if self.defeat():
-            return
-
-        self.collide()
-
-        if self.check_hit():
-            return
-
-        if abs(self.rect.x - self.start_x) >= self.max_length:
-            self.flip()
-
-        if self.x_vel == 0:
-            self.animations['stay'].blit(self.image, (0, 0))
-        else:
-            self.animations['run'].blit(self.image, (0, 0))
-
-
-class Slime(Enemy):
+class Slime(WalkingEnemy):
     width, height = 44, 30
 
     def __init__(self, x, y, speed, max_length):
@@ -314,45 +278,6 @@ class Slime(Enemy):
 
         for anim in self.animations.values():
             anim.play()
-
-    def flip(self):
-        self.x_vel = -self.x_vel
-        for anim in self.animations.values():
-            anim.flip(True, False)
-
-    def collide(self):
-        if not self.on_ground:
-            check_on_ground = pygame.sprite.spritecollideany(self, platforms)
-            if check_on_ground is None:
-                self.y_vel += GRAVITY
-            else:
-                self.rect.bottom = check_on_ground.rect.top
-                self.y_vel = 0
-                self.on_ground = True
-
-        for platform in pygame.sprite.spritecollide(self, platforms, False):
-            if self.x_vel < 0:
-                self.rect.left = platform.rect.right
-                self.flip()
-            elif self.x_vel > 0:
-                self.rect.right = platform.rect.left
-                self.flip()
-
-    def update(self):
-        super().update()
-
-        if self.defeat():
-            return
-
-        self.collide()
-
-        if self.check_hit():
-            return
-
-        if abs(self.rect.x - self.start_x) >= self.max_length:
-            self.flip()
-
-        self.animations['run'].blit(self.image, (0, 0))
 
 
 class Chameleon(Enemy):
@@ -579,7 +504,7 @@ class Plant(Enemy):
         if self.direction == "right":
             self.flip()
 
-        self.attack = False   # идёт ли сейчас атака
+        self.attack = False  # идёт ли сейчас атака
         self.bullet_fired = False  # выпущена ли пуля на текущей атаке
 
         self.animations['stay'].play()
@@ -620,9 +545,9 @@ class Plant(Enemy):
             # анимация атаки закончилась
             if self.animations['attack'].currentFrameNum + 1 == \
                     self.animations['attack'].numFrames:
-
                 self.animations['attack'].stop()
                 self.attack = False
-                self.bullet_fired = False  # Атака закончилась - выстрел пули прекратился
+                self.bullet_fired = False
+                # Атака закончилась - выстрел пули прекратился
                 # Время начинает отсчитываться именно тогда, когда атака закончилась
                 self.last_attack = pygame.time.get_ticks()
