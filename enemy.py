@@ -56,6 +56,9 @@ class Enemy(pygame.sprite.Sprite):
     def get_x_vel(self):
         return self.x_vel
 
+    def get_health(self):
+        return self.health
+
     def check_hit(self):
         # Проверка на наличие удара от ГГ
 

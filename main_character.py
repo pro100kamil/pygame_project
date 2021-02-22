@@ -12,7 +12,7 @@ from some_classes import *
 from weapon import Shuriken
 
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-MAIN_HERO = 'Pink Man'
+MAIN_HERO = 'Ninja Frog'
 # name: (damage, speed, health)
 heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
           'Pink Man': hero_parameters(20, 4, 120),
@@ -56,6 +56,9 @@ def load_level(filename):
                 AngryPig(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '*':
                 Fruit(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == '?':
+                Potion(x * TILE_SIDE + (TILE_SIDE - Potion.width) / 2,
+                       y * TILE_SIDE + (TILE_SIDE - Potion.height) / 2)
             elif elem == '2':
                 Backpack(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'b':
@@ -218,7 +221,7 @@ class MainHero(BaseHero):
             if pygame.rect.Rect.colliderect(self.rect, enemy_head):
                 continue
             if pygame.Rect.colliderect(self.rect, enemy.rect):
-                if enemy.start_attack():
+                if enemy.get_health() > 0 and enemy.start_attack():
                     self.health -= enemy.get_damage()
                     print("Жизни героя", self.health)  # для отладки
                     if self.health <= 0:
@@ -231,6 +234,8 @@ class MainHero(BaseHero):
                     self.y_vel = -5
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
             enemy: Enemy
+            if enemy.get_health() <= 0:
+                continue
             # Имитация головы врага (тестовый вариант)
             enemy_head = pygame.rect.Rect(
                 enemy.rect.x + (enemy.rect.width / 5),
@@ -263,13 +268,13 @@ class MainHero(BaseHero):
                 enemy_x_vel = enemy.get_x_vel()
                 # Изменение векторов скоростей в соответствии со старыми.
                 delta = 9 if isinstance(enemy, Rino) else 5
-                if enemy_x_vel < 0 and self.x_vel == 0:
+                if enemy_x_vel < 0:
                     self.x_vel = -delta
-                elif enemy_x_vel > 0 and self.x_vel == 0:
+                elif enemy_x_vel > 0:
                     self.x_vel = delta
-                elif self.direction == 'left':
+                elif self.direction == 'left' and enemy_x_vel == 0:
                     self.x_vel = delta
-                elif self.direction == 'right':
+                elif self.direction == 'right' and enemy_x_vel == 0:
                     self.x_vel = -delta
                 self.y_vel = -5
 

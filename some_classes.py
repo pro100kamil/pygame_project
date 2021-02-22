@@ -273,3 +273,57 @@ class Checkpoint(pygame.sprite.Sprite):
 
     def get_name(self):
         return self.name
+
+
+class Potion(pygame.sprite.Sprite):
+    """Фрукты (прибавляют игроку жизни)"""
+
+    width, height = 27, 32
+
+    def __init__(self, x, y):
+        super().__init__(potions_group, all_sprites)
+
+        self.rect = pygame.Rect(x, y, Potion.width, Potion.height)
+        self.image = pygame.Surface((Potion.width, Potion.height))
+        self.collected = False
+
+        # каждый раз случайный фрукт
+        self.anim_normal = pyganim.PygAnimation(cut_sheet(
+            f'Potions/PotionSpeed2.png', 1, 4, anim_delay=500))
+        self.anim_normal.play()
+
+        self.anim_collected = pyganim.PygAnimation(cut_sheet(
+            f'Potions/Collected.png', 1, 6, anim_delay=100))
+
+        # кол-во жизней, которое получит герой, если возьмёт фрукт
+        self.speedup = 2
+        self.duration = 5
+
+    def update(self):
+        self.image.fill('black')
+        self.image.set_colorkey('black')
+
+        if not self.collected:  # Если не собран, обычная анимация
+            self.anim_normal.blit(self.image, (0, 0))
+        elif self.anim_collected.currentFrameNum == \
+                self.anim_collected.numFrames - 1:
+            # Если собран и анимация подходит к концу, спрайт удаляется
+            self.anim_collected.stop()
+            self.kill()
+        else:
+            self.anim_collected.blit(self.image, (0, 0))
+
+    def collect(self):
+        """Фрукт собран"""
+
+        self.collected = True
+        self.anim_collected.play()
+
+    def is_collected(self):
+        return self.collected
+
+    def get_speedup(self):
+        return self.speedup
+
+    def get_duration(self):
+        return self.duration
