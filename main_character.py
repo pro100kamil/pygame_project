@@ -136,6 +136,7 @@ class MainHero(BaseHero):
         self.boost_duration = 0  # Длительность буста текущего зелья
         # Последний сбор буста. Нужно для вычисления остатка действия зелья
         self.last_boost = False
+        self.key_up_is_raised = False
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -380,6 +381,10 @@ class MainHero(BaseHero):
             self.speed = self.last_speed
             self.last_boost = False
 
+        # Единственная клавиша, при которой сбивается двойной прыжок
+        if pygame.key.get_pressed()[pygame.K_DOWN]:
+            self.double_jump = False
+
         if self.double_jump:
             self.animations['double_jump'].blit(self.image, (0, 0))
             flag_anim = False
@@ -417,6 +422,14 @@ class MainHero(BaseHero):
             if self.on_ground:
                 self.on_ground = False
                 self.y_vel = -self.height_jump
+                self.jump = pygame.time.get_ticks()
+                self.key_up_is_raised = False  # Флаг - отжата ли клавиша "вверх"
+
+            # Если герой не на земле, клавиша вверх отжата, и прошло меньше 1500 мс после прыжка
+            elif self.key_up_is_raised and self.jump and now - self.jump < 1500:
+                self.double_jump = True
+                self.y_vel = -self.height_jump
+                self.jump = False
             if flag_anim:
                 self.animations['jump'].blit(self.image, (0, 0))
                 flag_anim = False
@@ -503,6 +516,9 @@ class MainHero(BaseHero):
                              (pygame.time.get_ticks() - self.last_boost)) / 1000))
         return 'Ускорения нет'
 
+    def raise_key(self):
+        self.key_up_is_raised = True
+
 
 if __name__ == "__main__":
     running = True
@@ -524,7 +540,9 @@ if __name__ == "__main__":
                     player.attack()
                 elif event.key == pygame.K_p:
                     pause = not pause
-
+            if event.type == pygame.KEYUP:  # Клавиша вверх отжата
+                if event.key == pygame.K_UP and not pause:
+                    player.raise_key()
         if pause:
             continue
 
