@@ -381,16 +381,14 @@ class MainHero(BaseHero):
             self.speed = self.last_speed
             self.last_boost = False
 
-        # Единственная клавиша, при которой сбивается двойной прыжок
-        if pygame.key.get_pressed()[pygame.K_DOWN]:
-            self.double_jump = False
-
         if self.double_jump:
+            self.animations['double_jump'].play()  # Начинаем анимацию заново
             self.animations['double_jump'].blit(self.image, (0, 0))
             flag_anim = False
             if self.animations['double_jump'].currentFrameNum == \
                     self.animations['double_jump'].numFrames - 1:
                 self.double_jump = False
+                self.animations['double_jump'].stop()
 
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
             self.x_vel = self.speed
@@ -430,16 +428,12 @@ class MainHero(BaseHero):
                 self.double_jump = True
                 self.y_vel = -self.height_jump
                 self.jump = False
-            if flag_anim:
-                self.animations['jump'].blit(self.image, (0, 0))
-                flag_anim = False
+                self.animations['double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
 
         if pygame.key.get_pressed()[pygame.K_DOWN]:
+            self.jump = False  # Если нажата клавиша вниз, то сбивается весь прыжок
             if not self.on_ground:
                 self.y_vel = 1.4 * self.height_jump
-                if flag_anim:
-                    self.animations['fall'].blit(self.image, (0, 0))
-                    flag_anim = False
 
         if pygame.key.get_pressed()[pygame.K_SPACE] \
                 and not pygame.key.get_pressed()[pygame.K_DOWN]:
@@ -447,11 +441,7 @@ class MainHero(BaseHero):
                 self.on_ground = False
                 self.y_vel = -1.4 * self.height_jump
                 self.double_jump = True
-                self.animations['double_jump'].play()
-                if flag_anim:
-                    self.animations['double_jump'].blit(self.image,
-                                                        (0, 0))
-                    flag_anim = False
+                self.animations['double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
 
         if pygame.key.get_pressed()[pygame.K_f]:
             self.health = 0
