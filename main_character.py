@@ -1,7 +1,7 @@
 import os
 from random import choice
 from collections import namedtuple
-
+from math import ceil
 import pygame
 import pyganim
 
@@ -132,6 +132,10 @@ class MainHero(BaseHero):
 
         self.transparency = 255
         self.angle = 0
+        self.last_speed = self.speed
+        self.boost_duration = 0  # Длительность буста текущего зелья
+        # Последний сбор буста. Нужно для вычисления остатка действия зелья
+        self.last_boost = False
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -201,6 +205,18 @@ class MainHero(BaseHero):
                     self.health += fruit.get_health()
                     print("Жизни героя", self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
+
+    def collide_with_potions(self):
+        """Взятие зелья скорости"""
+
+        for potion in potions_group:
+            potion: Potion
+            if not potion.is_collected() and pygame.sprite.collide_mask(self, potion):
+                self.last_speed = self.speed
+                self.speed = self.last_speed + potion.get_speedup()
+                self.boost_duration = potion.get_duration()
+                self.last_boost = pygame.time.get_ticks()
+                potion.collect()
 
     def collide_with_checkpoints(self):
         """Обработка столкновений с флажками"""
@@ -330,6 +346,7 @@ class MainHero(BaseHero):
 
         # флаг, нужна ли ещё анимация в текущем обновлении
         flag_anim = True  # нужно, чтобы не было двойной анимации
+        now = pygame.time.get_ticks()
 
         if not self.on_ground:
             self.y_vel += GRAVITY
@@ -342,6 +359,7 @@ class MainHero(BaseHero):
         self.collide_with_fruits()
         self.collide_with_checkpoints()
         self.collide_with_bullets()
+        self.collide_with_potions()
 
         self.rect.x += self.x_vel
         self.collide(self.x_vel, 0)
@@ -351,13 +369,18 @@ class MainHero(BaseHero):
 
         # Если игрок попал на шипы,
         # то на протяжении 700 мс проигрывается анимация
-        if self.got_hit and pygame.time.get_ticks() - self.got_hit < 700:
+        if self.got_hit and now - self.got_hit < 700:
             self.animations['hit'].play()
             self.animations['hit'].blit(self.image, (0, 0))
             return
         else:
             self.got_hit = False  # Анимация прошла
             self.animations['hit'].stop()
+
+        if self.last_boost and now - self.last_boost > self.boost_duration:
+            self.speed = self.last_speed
+            self.last_boost = False
+
 
         if self.double_jump:
             self.animations['double_jump'].blit(self.image, (0, 0))
@@ -476,6 +499,12 @@ class MainHero(BaseHero):
         y = self.rect.bottomleft[1] + 2
         Particles(self.direction, (x, y))
 
+    def rest_of_boost(self) -> str:
+        if self.last_boost:
+            return str(ceil((self.boost_duration -
+                             (pygame.time.get_ticks() - self.last_boost)) / 1000))
+        return 'Ускорения нет'
+
 
 if __name__ == "__main__":
     running = True
@@ -536,6 +565,8 @@ if __name__ == "__main__":
         screen.blit(font.render(f": {player.get_number_shurikens()}",
                                 True, (0, 252, 123)),
                     (first + 160, TILE_SIDE // 2 - 10))
+        screen.blit(font.render(player.rest_of_boost(), True, (0, 252, 123)),
+                    (first + 250, TILE_SIDE // 2 - 10))
 
         pygame.display.flip()
         clock.tick(FPS)

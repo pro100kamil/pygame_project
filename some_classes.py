@@ -276,7 +276,7 @@ class Checkpoint(pygame.sprite.Sprite):
 
 
 class Potion(pygame.sprite.Sprite):
-    """Фрукты (прибавляют игроку жизни)"""
+    """Зелье скорости"""
 
     width, height = 27, 32
 
@@ -295,9 +295,9 @@ class Potion(pygame.sprite.Sprite):
         self.anim_collected = pyganim.PygAnimation(cut_sheet(
             f'Potions/Collected.png', 1, 6, anim_delay=100))
 
-        # кол-во жизней, которое получит герой, если возьмёт фрукт
+        # Добавление скорости и длительность буста
         self.speedup = 2
-        self.duration = 5
+        self.duration = 5000
 
     def update(self):
         self.image.fill('black')
@@ -314,7 +314,7 @@ class Potion(pygame.sprite.Sprite):
             self.anim_collected.blit(self.image, (0, 0))
 
     def collect(self):
-        """Фрукт собран"""
+        """Зелье собрано"""
 
         self.collected = True
         self.anim_collected.play()
