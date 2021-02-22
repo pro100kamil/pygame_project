@@ -2,6 +2,20 @@ import pygame
 import pygame_gui
 from collections import namedtuple
 
+
+def update_hero(name):
+    global image
+    image = pygame.transform.scale(
+        pygame.image.load(f"{name}.png"),
+        size_hero_image)
+    damage_label.set_text(
+        f'Урон: {heroes[name].damage}')
+    speed_label.set_text(
+        f'Скорость: {heroes[name].speed}')
+    health_label.set_text(
+        f'Жизни: {heroes[name].health}')
+
+
 if __name__ == '__main__':
     hero_parameters = namedtuple('hero_parameters', 'damage speed health')
     # name: (damage, speed, health)
@@ -22,7 +36,19 @@ if __name__ == '__main__':
     image = pygame.transform.scale(pygame.image.load("Ninja Frog.png"),
                                    size_hero_image)
 
-    manager = pygame_gui.UIManager(SIZE)
+    manager = pygame_gui.UIManager(SIZE, 'style.json')
+
+    width = 31
+    height = 33
+    x = coord_hero_image[0] + (size_hero_image[0] - width) // 2
+    y = 10
+    volume = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect(x, y, width, height),
+        text='',
+        tool_tip_text='Нажмите, чтобы начать игру',
+        object_id='#volume',
+        manager=manager
+    )
 
     width = 180
     height = 50
@@ -68,7 +94,7 @@ if __name__ == '__main__':
         time_delta = clock.tick(60) / 1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                # exit(0)
+                exit(0)
                 confirmation_dialog = pygame_gui.windows.UIConfirmationDialog(
                     rect=pygame.Rect((WIDTH // 2 - 150, HEIGHT // 2 - 100),
                                      (300, 200)),
@@ -83,30 +109,15 @@ if __name__ == '__main__':
                     now = (now + 1) % len(list_heroes)
                 elif event.key == pygame.K_LEFT:
                     now = (now - 1) % len(list_heroes)
-                image = pygame.transform.scale(
-                    pygame.image.load(f"{list_heroes[now]}.png"),
-                    size_hero_image)
-                damage_label.set_text(
-                    f'Урон: {heroes[list_heroes[now]].damage}')
-                speed_label.set_text(
-                    f'Скорость: {heroes[list_heroes[now]].speed}')
-                health_label.set_text(
-                    f'Жизни: {heroes[list_heroes[now]].health}')
+                update_hero(list_heroes[now])
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     running = False
-                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                    image = pygame.transform.scale(
-                        pygame.image.load(f"{event.text}.png"),
-                        size_hero_image)
-                    damage_label.set_text(f'Урон: {heroes[event.text].damage}')
-                    speed_label.set_text(
-                        f'Скорость: {heroes[event.text].speed}')
-                    health_label.set_text(
-                        f'Жизни: {heroes[event.text].health}')
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == play:
                         print('PLAY')
+                    elif event.ui_element == volume:
+                        print('VOLUME')
             manager.process_events(event)
 
         manager.update(time_delta)
