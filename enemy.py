@@ -414,6 +414,7 @@ class Chameleon(Enemy):
             self.rect2 = pygame.Rect(x + 38, y, 38, 38)
 
         if self.defeat():
+            self.attack = False
             return
 
         self.collide()
