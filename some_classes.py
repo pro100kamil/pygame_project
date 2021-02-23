@@ -165,7 +165,7 @@ class Backpack(pygame.sprite.Sprite):
         self.collected = False
 
         self.anim_normal = pyganim.PygAnimation(
-            cut_image(pygame.transform.scale(load_image('backpack.png', -1),
+            cut_image(pygame.transform.scale(load_image('backpack2.png', -1),
                                              (Backpack.width,
                                               Backpack.height)),
                       1, 1, anim_delay=100))

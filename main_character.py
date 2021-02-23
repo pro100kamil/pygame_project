@@ -56,12 +56,14 @@ def load_level(filename):
             elif elem == 'o':
                 AngryPig(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '*':
-                Fruit(x * TILE_SIDE, y * TILE_SIDE)
+                Fruit(x * TILE_SIDE + (TILE_SIDE - Fruit.width) / 2,
+                      y * TILE_SIDE + (TILE_SIDE - Fruit.height) / 2)
             elif elem == '?':
                 Potion(x * TILE_SIDE + (TILE_SIDE - Potion.width) / 2,
                        y * TILE_SIDE + (TILE_SIDE - Potion.height) / 2)
             elif elem == '2':
-                Backpack(x * TILE_SIDE, y * TILE_SIDE)
+                Backpack(x * TILE_SIDE + (TILE_SIDE - Backpack.width) / 2,
+                         y * TILE_SIDE + (TILE_SIDE - Backpack.height) / 2)
             elif elem == 'b':
                 BouncedEnemy(x * TILE_SIDE, y * TILE_SIDE, 10)
             elif elem == 'm':
@@ -548,10 +550,16 @@ class MainHero(BaseHero):
     def set_damage(self, delta_damage):
         self.damage = self.last_damage + delta_damage
 
+    def add_paused_time(self, time):
+        # Добавляем к каждому бусту время паузы
+        for name in self.boosts:
+            self.boosts[name]['last_boost'] += time
+
 
 if __name__ == "__main__":
     running = True
     pause = False
+    last_pause = 0
 
     clock = pygame.time.Clock()
 
@@ -569,6 +577,11 @@ if __name__ == "__main__":
                     player.attack()
                 elif event.key == pygame.K_p:
                     pause = not pause
+                    if pause:
+                        last_pause = pygame.time.get_ticks()
+                    else:
+                        # Добавление упущенного во время паузы времени
+                        player.add_paused_time(pygame.time.get_ticks() - last_pause)
         if pause:
             continue
 
