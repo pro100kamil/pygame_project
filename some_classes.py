@@ -160,20 +160,44 @@ class Backpack(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(fruits_group, all_sprites)
 
-        self.rect = pygame.Rect(x, y, Fruit.width, Fruit.height)
-        self.image = pygame.transform.scale(load_image('backpack.png', -1),
-                                            (Backpack.width, Backpack.height))
+        self.rect = pygame.Rect(x, y, Backpack.width, Backpack.height)
+        self.image = pygame.Surface((Backpack.width, Backpack.height))
+        self.collected = False
 
+        self.anim_normal = pyganim.PygAnimation(
+            cut_image(pygame.transform.scale(load_image('backpack.png', -1),
+                                             (Backpack.width,
+                                              Backpack.height)),
+                      1, 1, anim_delay=100))
+        self.anim_normal.play()
+
+        self.anim_collected = pyganim.PygAnimation(cut_sheet(
+            f'Fruits/Collected.png', 1, 6, anim_delay=100))
         # кол-во сюрикенов, которое получит герой, если возьмёт рюкзак
         self.kol = 10
 
     def collect(self):
-        """Фрукт собран"""
-        self.kill()
+        """Рюкзак собран"""
+
+        self.collected = True
+        self.anim_collected.play()
+
+    def update(self):
+        self.image.fill('black')
+        self.image.set_colorkey('black')
+
+        if not self.collected:  # Если не собран, обычная анимация
+            self.anim_normal.blit(self.image, (0, 0))
+        elif self.anim_collected.currentFrameNum == \
+                self.anim_collected.numFrames - 1:
+            # Если собран и анимация подходит к концу, спрайт удаляется
+            self.anim_collected.stop()
+            self.kill()
+        else:
+            self.anim_collected.blit(self.image, (0, 0))
 
     def is_collected(self):
-        # если спрайт существует, то он не собран
-        return False
+        return self.collected
 
     def get_kol(self):
         return self.kol
@@ -207,7 +231,8 @@ class Particles(pygame.sprite.Sprite):
     orig_pic = load_image('Dust Particle.png')
     orig_pic = pygame.transform.scale(orig_pic, (10, 10))
     orig_side = orig_pic.get_height()
-    pictures = [orig_pic, pygame.transform.scale(orig_pic, [orig_side - 5] * 2)]
+    pictures = [orig_pic,
+                pygame.transform.scale(orig_pic, [orig_side - 5] * 2)]
 
     def __init__(self, direction, position):
         super().__init__(all_sprites)

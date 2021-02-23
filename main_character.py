@@ -12,7 +12,7 @@ from some_classes import *
 from weapon import Shuriken
 
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-MAIN_HERO = 'Ninja Frog'
+MAIN_HERO = 'Virtual Guy'
 # name: (damage, speed, health)
 heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
           'Pink Man': hero_parameters(20, 4, 120),
@@ -50,7 +50,8 @@ def load_level(filename):
                 Saw(x * TILE_SIDE, y * TILE_SIDE)
                 # Spikes(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '.':
-                # Spikes(x * TILE_SIDE, y * TILE_SIDE)
+                Spikes(x * TILE_SIDE, y * TILE_SIDE)
+            elif elem == 'c':
                 Chicken(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'o':
                 AngryPig(x * TILE_SIDE, y * TILE_SIDE)
@@ -169,7 +170,7 @@ class MainHero(BaseHero):
             anim.play()
 
     def flip(self):
-        """Разворот всех анимаций спрайтов"""
+        """Разворот всех анимаций"""
         for anim in self.animations.values():
             anim.flip(True, False)
 
@@ -202,7 +203,7 @@ class MainHero(BaseHero):
                 self.y_vel = 0
 
     def collide_with_fruits(self):
-        """Обработка столкновений с фруктами (взятие фрукта)"""
+        """Обработка столкновений с фруктами и рюкзаком (взятие фрукта)"""
         for fruit in fruits_group:
             fruit: Fruit
             if not fruit.is_collected() and pygame.sprite.collide_mask(self,
@@ -234,9 +235,12 @@ class MainHero(BaseHero):
         for checkpoint in pygame.sprite.spritecollide(self, checkpoints,
                                                       False):
             checkpoint: Checkpoint
-            if not checkpoint.moving and checkpoint.get_name() == 'End':
-                checkpoint.moving = True
-                # уровень пройден
+            if checkpoint.get_name() == 'End':
+                if not checkpoint.moving:
+                    checkpoint.moving = True
+                if not list(enemies_group):
+                    # уровень пройден
+                    print('уровень пройден')
 
     def collide_with_enemies(self):
         """Обработка столкновений с врагами"""
@@ -543,7 +547,7 @@ if __name__ == "__main__":
 
     clock = pygame.time.Clock()
 
-    player, level_x, level_y = load_level('map.txt')
+    player, level_x, level_y = load_level('level1.txt')
 
     camera = Camera(level_x, level_y)
 
@@ -586,7 +590,7 @@ if __name__ == "__main__":
         screen.blit(game_screen, (0, TILE_SIDE))
 
         font = pygame.font.Font(None, 30)
-        first = (WIDTH - (50 * 2 + 60 * 2)) // 2
+        first = (WIDTH - (350 + 150)) // 2
         screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
                     (first, TILE_SIDE // 2 - 20))
         screen.blit(font.render(f": {player.get_health()}",
@@ -598,8 +602,12 @@ if __name__ == "__main__":
         screen.blit(font.render(f": {player.get_number_shurikens()}",
                                 True, (0, 252, 123)),
                     (first + 160, TILE_SIDE // 2 - 10))
-        screen.blit(font.render(player.rest_of_boost(), True, (0, 252, 123)),
-                    (first + 250, TILE_SIDE // 2 - 10))
+        screen.blit(font.render(player.rest_of_boost(), True, (0, 255, 0)),
+                    (first + 220, TILE_SIDE // 2 - 10))
+        screen.blit(font.render(f"Врагов осталось: "
+                                f"{len(list(enemies_group))}",
+                                True, (0, 252, 123)),
+                    (first + 350, TILE_SIDE // 2 - 10))
 
         pygame.display.flip()
         clock.tick(FPS)

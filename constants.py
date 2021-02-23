@@ -3,7 +3,7 @@ import pygame
 TILE_SIDE = 50
 SIZE = WIDTH, HEIGHT = 750, 750  # size game_screen
 FPS = 30
-GRAVITY = 10 / FPS
+GRAVITY = 12 / FPS
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT + TILE_SIDE))
 game_screen = pygame.Surface(SIZE)
