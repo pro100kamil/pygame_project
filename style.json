@@ -17,5 +17,12 @@
         "path": "Volume1.png"
       }
     }
+  },
+  "#back": {
+    "images": {
+      "normal_image": {
+        "path": "Back1.png"
+      }
+    }
   }
 }
