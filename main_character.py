@@ -241,6 +241,7 @@ class MainHero(BaseHero):
     def collide_with_enemies(self):
         """Обработка столкновений с врагами"""
         for enemy in chameleons:
+            enemy: Chameleon
             enemy_head = pygame.rect.Rect(
                 enemy.rect2.x + (enemy.rect2.width / 4),
                 enemy.rect2.y, enemy.rect2.width / 2,
@@ -248,17 +249,19 @@ class MainHero(BaseHero):
             if pygame.rect.Rect.colliderect(self.rect, enemy_head):
                 continue
             if pygame.Rect.colliderect(self.rect, enemy.rect):
-                if enemy.get_health() > 0 and enemy.start_attack():
-                    self.health -= enemy.get_damage()
-                    print("Жизни героя", self.health)  # для отладки
-                    if self.health <= 0:
-                        self.health = 0
-                        break
-
-                    self.got_hit = pygame.time.get_ticks()  # Время последнего удара
-                    enemy_x_vel = enemy.get_x_vel()
-                    self.x_vel = enemy_x_vel * 2
-                    self.y_vel = -5
+                if enemy.get_health() > 0 and not enemy.attack:
+                    enemy.start_attack()
+            if not self.got_hit and pygame.sprite.collide_mask(self, enemy):
+                print('ok')
+                self.health -= enemy.get_damage()
+                print("Жизни героя", self.health)  # для отладки
+                if self.health <= 0:
+                    self.health = 0
+                    break
+                self.got_hit = pygame.time.get_ticks()  # Время последнего удара
+                enemy_x_vel = enemy.get_x_vel()
+                self.x_vel = enemy_x_vel * 2
+                self.y_vel = -5
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
             enemy: Enemy
             if enemy.get_health() <= 0:

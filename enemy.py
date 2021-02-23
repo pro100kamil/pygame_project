@@ -400,7 +400,13 @@ class Chameleon(Enemy):
             self.x_vel = 0
 
     def update(self):
-        super().update()
+        self.image.fill('black')
+        self.image.set_colorkey('black')
+
+        if not self.attack:
+            self.rect = self.rect.move(0 if self.got_hit else self.x_vel,
+                                       self.y_vel)
+
         x, y = self.rect.left, self.rect.top
         if self.x_vel > 0 or self.x_vel == 0 and self.prev_x_vel > 0:
             self.rect2 = pygame.Rect(x, y, 38, 38)
@@ -430,17 +436,22 @@ class Chameleon(Enemy):
                 self.flip()
 
         if self.attack:
+            self.animations['attack'].play()
             self.animations['attack'].blit(self.image, (0, 0))
         elif self.x_vel == 0:
             self.animations['stay'].blit(self.image, (0, 0))
+            self.animations['attack'].stop()
         else:
             self.animations['run'].blit(self.image, (0, 0))
+            self.animations['attack'].stop()
 
         # анимация атаки закончилась
         if self.attack and \
                 self.animations['attack'].currentFrameNum + 1 == \
                 self.animations['attack'].numFrames:
             self.attack = False
+
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Rino(Enemy):
