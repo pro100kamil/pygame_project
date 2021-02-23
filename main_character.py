@@ -24,7 +24,7 @@ pygame.init()
 
 def load_level(filename):
     """Загрузка уровня"""
-    filename = os.path.join('data', filename)
+    filename = os.path.join('maps', filename)
     # если файл не существует, то выходим
     if not os.path.isfile(filename):
         raise SystemExit(f"Файл с картой '{filename}' не найден")
@@ -133,6 +133,7 @@ class MainHero(BaseHero):
         self.transparency = 255
         self.angle = 0
         self.last_speed = self.speed
+        self.last_damage = self.damage
         self.boost_duration = 0  # Длительность буста текущего зелья
         # Последний сбор буста. Нужно для вычисления остатка действия зелья
         self.last_boost = False
@@ -218,8 +219,12 @@ class MainHero(BaseHero):
 
         for potion in potions_group:
             potion: Potion
-            if not potion.is_collected() and pygame.sprite.collide_mask(self, potion):
-                self.speed = self.last_speed + potion.get_speedup()
+            if not potion.is_collected() and pygame.sprite.collide_mask(self,
+                                                                        potion):
+                if potion.get_name() == 'speed':
+                    self.speed = self.last_speed + potion.get_boost()
+                else:
+                    self.damage = self.last_damage + potion.get_boost()
                 self.boost_duration = potion.get_duration()
                 self.last_boost = pygame.time.get_ticks()
                 potion.collect()
@@ -395,7 +400,10 @@ class MainHero(BaseHero):
             self.animations['hit'].stop()
 
         if self.last_boost and now - self.last_boost > self.boost_duration:
-            self.speed = self.last_speed
+            if self.speed != self.last_speed:
+                self.speed = self.last_speed
+            else:
+                self.damage = self.last_damage
             self.last_boost = False
 
         if self.double_jump:
@@ -445,7 +453,8 @@ class MainHero(BaseHero):
                 self.double_jump = True
                 self.y_vel = -self.height_jump
                 self.jump = False
-                self.animations['double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
+                self.animations[
+                    'double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
 
         if pygame.key.get_pressed()[pygame.K_DOWN]:
             self.jump = False  # Если нажата клавиша вниз, то сбивается весь прыжок
@@ -458,7 +467,8 @@ class MainHero(BaseHero):
                 self.on_ground = False
                 self.y_vel = -1.4 * self.height_jump
                 self.double_jump = True
-                self.animations['double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
+                self.animations[
+                    'double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
 
         if pygame.key.get_pressed()[pygame.K_f]:
             self.health = 0
@@ -521,7 +531,7 @@ class MainHero(BaseHero):
         if self.last_boost:
             return str(ceil((self.boost_duration -
                              (pygame.time.get_ticks() - self.last_boost)) / 1000))
-        return 'Ускорения нет'
+        return 'Бустов нет'
 
     def raise_key(self):
         self.key_up_is_raised = True

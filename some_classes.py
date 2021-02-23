@@ -276,28 +276,33 @@ class Checkpoint(pygame.sprite.Sprite):
 
 
 class Potion(pygame.sprite.Sprite):
-    """Зелье скорости"""
+    """Зелье скорости или урона"""
 
     width, height = 27, 32
 
     def __init__(self, x, y):
         super().__init__(potions_group, all_sprites)
 
+        self.name = choice(['speed', 'damage'])
         self.rect = pygame.Rect(x, y, Potion.width, Potion.height)
         self.image = pygame.Surface((Potion.width, Potion.height))
         self.collected = False
 
-        # каждый раз случайный фрукт
-        self.anim_normal = pyganim.PygAnimation(cut_sheet(
-            f'Potions/PotionSpeed2.png', 1, 4, anim_delay=500))
+        if self.name == 'speed':
+            self.anim_normal = pyganim.PygAnimation(cut_sheet(
+                f'PotionsSheet.png', 8, 8, anim_delay=500)[8:12])
+        else:
+            self.anim_normal = pyganim.PygAnimation(cut_sheet(
+                f'PotionsSheet.png', 8, 8, anim_delay=500)[0:4])
+        self.anim_normal.scale2x()
         self.anim_normal.play()
 
         self.anim_collected = pyganim.PygAnimation(cut_sheet(
             f'Potions/Collected.png', 1, 6, anim_delay=100))
 
-        # Добавление скорости и длительность буста
-        self.speedup = 2
-        self.duration = 5000
+        # Добавление скорости/урона и длительность буста
+        self.boost = 2 if self.name == 'speed' else 30
+        self.duration = 5000 if self.name == 'speed' else 8000
 
     def update(self):
         self.image.fill('black')
@@ -315,15 +320,17 @@ class Potion(pygame.sprite.Sprite):
 
     def collect(self):
         """Зелье собрано"""
-
         self.collected = True
         self.anim_collected.play()
 
     def is_collected(self):
         return self.collected
 
-    def get_speedup(self):
-        return self.speedup
+    def get_name(self):
+        return self.name
+
+    def get_boost(self):
+        return self.boost
 
     def get_duration(self):
         return self.duration
