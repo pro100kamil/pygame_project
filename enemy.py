@@ -114,16 +114,16 @@ class Bunny(Enemy):
         self.damage = 15  # урон, который наносит враг при атаке
 
         self.animations = {'jump': pyganim.PygAnimation(cut_sheet(
-            'Bunny/Jump.png', 1, 1, anim_delay=100)),
+            'Enemies/Bunny/Jump.png', 1, 1, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(cut_sheet(
-                'Bunny/Idle.png', 1, 8, anim_delay=100)),
+                'Enemies/Bunny/Idle.png', 1, 8, anim_delay=100)),
 
             'fall': pyganim.PygAnimation(cut_sheet(
-                'Bunny/Fall.png', 1, 1, anim_delay=100)),
+                'Enemies/Bunny/Fall.png', 1, 1, anim_delay=100)),
 
             'hit': pyganim.PygAnimation(cut_sheet(
-                'Bunny/Hit.png', 1, 5, anim_delay=100))}
+                'Enemies/Bunny/Hit.png', 1, 5, anim_delay=100))}
 
         for anim in self.animations.values():
             anim.play()
@@ -229,13 +229,13 @@ class Chicken(WalkingEnemy):
         self.damage = 15  # урон, который наносит враг при атаке
 
         self.animations = {'run': pyganim.PygAnimation(cut_sheet(
-            'Chicken/Run.png', 1, 14, anim_delay=100)),
+            'Enemies/Chicken/Run.png', 1, 14, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(cut_sheet(
-                'Chicken/Idle.png', 1, 13, anim_delay=100)),
+                'Enemies/Chicken/Idle.png', 1, 13, anim_delay=100)),
 
             'hit': pyganim.PygAnimation(cut_sheet(
-                'Chicken/Hit.png', 1, 5, anim_delay=100))}
+                'Enemies/Chicken/Hit.png', 1, 5, anim_delay=100))}
 
         for anim in self.animations.values():
             anim.play()
@@ -252,13 +252,13 @@ class Mushroom(WalkingEnemy):
         self.damage = 15  # урон, который наносит враг при атаке
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
-            'Mushroom/Hit.png', 1, 5, anim_delay=100)),
+            'Enemies/Mushroom/Hit.png', 1, 5, anim_delay=100)),
 
             'run': pyganim.PygAnimation(cut_sheet(
-                'Mushroom/Run.png', 1, 16, anim_delay=100)),
+                'Enemies/Mushroom/Run.png', 1, 16, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(
-                cut_sheet('Mushroom/Idle.png', 1, 14, anim_delay=100))}
+                cut_sheet('Enemies/Mushroom/Idle.png', 1, 14, anim_delay=100))}
 
         for anim in self.animations.values():
             anim.play()
@@ -275,9 +275,9 @@ class Slime(WalkingEnemy):
         self.damage = 15  # урон, который наносит враг при атаке
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
-            'Slime/Hit.png', 1, 5, anim_delay=100)),
+            'Enemies/Slime/Hit.png', 1, 5, anim_delay=100)),
             'run': pyganim.PygAnimation(cut_sheet(
-                'Slime/Run.png', 1, 10, anim_delay=100))}
+                'Enemies/Slime/Run.png', 1, 10, anim_delay=100))}
 
         for anim in self.animations.values():
             anim.play()
@@ -288,7 +288,7 @@ class AngryPig(WalkingEnemy):
 
     def __init__(self, x, y):
         super().__init__(x, y, AngryPig.width, AngryPig.height)
-        speed, max_length = 2, 400
+        speed, max_length = 2, 200
         self.x_vel, self.y_vel = -speed, 0
         self.max_length = max_length
         self.health = 65  # количество жизней
@@ -296,13 +296,13 @@ class AngryPig(WalkingEnemy):
         self.is_angry = False
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
-            'AngryPig/Hit1.png', 1, 5, anim_delay=100)),
+            'Enemies/AngryPig/Hit1.png', 1, 5, anim_delay=100)),
 
             'run': pyganim.PygAnimation(cut_sheet(
-                'AngryPig/Walk.png', 1, 16, anim_delay=100)),
+                'Enemies/AngryPig/Walk.png', 1, 16, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(
-                cut_sheet('AngryPig/Idle.png', 1, 9, anim_delay=100))}
+                cut_sheet('Enemies/AngryPig/Idle.png', 1, 9, anim_delay=100))}
 
         for anim in self.animations.values():
             anim.play()
@@ -323,9 +323,9 @@ class AngryPig(WalkingEnemy):
                 self.x_vel = 6 if self.x_vel > 0 else -6
                 self.damage = 25
                 self.animations['run'] = pyganim.PygAnimation(cut_sheet(
-                    'AngryPig/Run.png', 1, 12, anim_delay=100))
+                    'Enemies/AngryPig/Run.png', 1, 12, anim_delay=100))
                 self.animations['hit'] = pyganim.PygAnimation(cut_sheet(
-                    'AngryPig/Hit2.png', 1, 5, anim_delay=100))
+                    'Enemies/AngryPig/Hit2.png', 1, 5, anim_delay=100))
                 self.animations['run'].play()
             self.got_hit = False
         return False
@@ -346,16 +346,16 @@ class Chameleon(Enemy):
         self.damage = 25  # урон, который наносит враг при атаке
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
-            'Chameleon/Hit.png', 1, 5, anim_delay=100)),
+            'Enemies/Chameleon/Hit.png', 1, 5, anim_delay=100)),
 
             'attack': pyganim.PygAnimation(cut_sheet(
-                'Chameleon/Attack.png', 1, 10, anim_delay=100)),
+                'Enemies/Chameleon/Attack.png', 1, 10, anim_delay=100)),
 
             'run': pyganim.PygAnimation(cut_sheet(
-                'Chameleon/Run.png', 1, 8, anim_delay=100)),
+                'Enemies/Chameleon/Run.png', 1, 8, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(cut_sheet(
-                'Chameleon/Idle.png', 1, 13, anim_delay=100))
+                'Enemies/Chameleon/Idle.png', 1, 13, anim_delay=100))
         }
         for anim in self.animations.values():
             anim.play()
@@ -467,16 +467,16 @@ class Rino(Enemy):
         self.damage = 25  # урон, который наносит враг при атаке
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
-            'Rino/Hit.png', 1, 5, anim_delay=100)),
+            'Enemies/Rino/Hit.png', 1, 5, anim_delay=100)),
 
             'hit_wall': pyganim.PygAnimation(cut_sheet(
-                'Rino/Hit Wall.png', 1, 4, anim_delay=100)),
+                'Enemies/Rino/Hit Wall.png', 1, 4, anim_delay=100)),
 
             'run': pyganim.PygAnimation(cut_sheet(
-                'Rino/Run.png', 1, 6, anim_delay=100)),
+                'Enemies/Rino/Run.png', 1, 6, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(cut_sheet(
-                'Rino/Idle.png', 1, 11, anim_delay=100))
+                'Enemies/Rino/Idle.png', 1, 11, anim_delay=100))
         }
 
         self.hit_wall = False
@@ -555,13 +555,13 @@ class Plant(Enemy):
         self.last_attack = pygame.time.get_ticks()  # Время последнего удара
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
-            'Plant/Hit.png', 1, 5, anim_delay=100)),
+            'Enemies/Plant/Hit.png', 1, 5, anim_delay=100)),
 
             'attack': pyganim.PygAnimation(cut_sheet(
-                'Plant/Attack.png', 1, 8, anim_delay=100)),
+                'Enemies/Plant/Attack.png', 1, 8, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(cut_sheet(
-                'Plant/Idle.png', 1, 11, anim_delay=100))
+                'Enemies/Plant/Idle.png', 1, 11, anim_delay=100))
         }
 
         if self.direction == "right":

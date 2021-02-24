@@ -64,7 +64,7 @@ class Bullet(pygame.sprite.Sprite):
 
         self.move_anim = pyganim.PygAnimation(
             cut_image(pygame.transform.scale(
-                load_image('Plant/Bullet.png'), (Bullet.width, Bullet.height)),
+                load_image('Enemies/Plant/Bullet.png'), (Bullet.width, Bullet.height)),
                 1, 1, anim_delay=100))
         self.move_anim.play()
 

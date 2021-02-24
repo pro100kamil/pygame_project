@@ -73,22 +73,22 @@ class MainHero(BaseHero):
         self.mask = pygame.mask.from_surface(self.image)
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(
-            f'{name}/Hit.png', 1, 7, anim_delay=100)),
+            f'Heroes/{name}/Hit.png', 1, 7, anim_delay=100)),
 
             'jump': pyganim.PygAnimation(cut_sheet(
-                f'{name}/Jump.png', 1, 1, anim_delay=100)),
+                f'Heroes/{name}/Jump.png', 1, 1, anim_delay=100)),
 
             'double_jump': pyganim.PygAnimation(cut_sheet(
-                f'{name}/Double Jump.png', 1, 6, anim_delay=100)),
+                f'Heroes/{name}/Double Jump.png', 1, 6, anim_delay=100)),
 
             'fall': pyganim.PygAnimation(cut_sheet(
-                f'{name}/Fall.png', 1, 1, anim_delay=100)),
+                f'Heroes/{name}/Fall.png', 1, 1, anim_delay=100)),
 
             'run': pyganim.PygAnimation(cut_sheet(
-                f'{name}/Run.png', 1, 12, anim_delay=100)),
+                f'Heroes/{name}/Run.png', 1, 12, anim_delay=100)),
 
             'stay': pyganim.PygAnimation(cut_sheet(
-                f'{name}/Idle.png', 1, 11, anim_delay=100)),
+                f'Heroes/{name}/Idle.png', 1, 11, anim_delay=100)),
 
             'appear': pyganim.PygAnimation(cut_sheet(
                 'Appearing.png', 1, 7, anim_delay=100)),
