@@ -18,119 +18,6 @@ heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
           'Virtual Guy': hero_parameters(15, 6, 95),
           'Mask Dude': hero_parameters(15, 5, 100)}
 
-pygame.init()
-
-
-def load_level(filename):
-    """Загрузка уровня"""
-    filename = os.path.join('maps', filename)
-    # если файл не существует, то выходим
-    if not os.path.isfile(filename):
-        raise SystemExit(f"Файл с картой '{filename}' не найден")
-
-    with open(filename, 'r') as mapFile:
-        level_map = [line.strip() for line in mapFile]
-    new_player, x, y = None, None, None
-    for y, row in enumerate(level_map):
-        for x, elem in enumerate(row):
-            if elem == '-':
-                Platform(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '1':
-                Checkpoint(
-                    x * TILE_SIDE - (TILE_SIDE - Checkpoint.width),
-                    y * TILE_SIDE + (TILE_SIDE - Checkpoint.height),
-                    'Start')
-            elif elem == '9':
-                Checkpoint(
-                    x * TILE_SIDE - (TILE_SIDE - Checkpoint.width),
-                    y * TILE_SIDE + (TILE_SIDE - Checkpoint.height),
-                    'End')
-            elif elem == '`':
-                Saw(x * TILE_SIDE, y * TILE_SIDE)
-                # Spikes(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '.':
-                Spikes(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'c':
-                Chicken(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'o':
-                AngryPig(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '*':
-                Fruit(x * TILE_SIDE + (TILE_SIDE - Fruit.width) / 2,
-                      y * TILE_SIDE + (TILE_SIDE - Fruit.height) / 2)
-            elif elem == '?':
-                Potion(x * TILE_SIDE + (TILE_SIDE - Potion.width) / 2,
-                       y * TILE_SIDE + (TILE_SIDE - Potion.height) / 2)
-            elif elem == '2':
-                Backpack(x * TILE_SIDE + (TILE_SIDE - Backpack.width) / 2,
-                         y * TILE_SIDE + (TILE_SIDE - Backpack.height) / 2)
-            elif elem == 'b':
-                Bunny(x * TILE_SIDE, y * TILE_SIDE, 10)
-            elif elem == 'm':
-                Mushroom(x * TILE_SIDE, y * TILE_SIDE, -3.5, 100)
-            elif elem == 's':
-                Slime(x * TILE_SIDE, y * TILE_SIDE, -1, 100)
-            elif elem == 'h':
-                Chameleon(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'r':
-                Rino(
-                    x * TILE_SIDE - (TILE_SIDE - Rino.width),
-                    y * TILE_SIDE + (TILE_SIDE - Rino.height)
-                )
-            elif elem == 'p':
-                Plant(
-                    x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
-                    y * TILE_SIDE + (TILE_SIDE - Plant.height), "right"
-                )
-            elif elem == 'P':
-                Plant(
-                    x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
-                    y * TILE_SIDE + (TILE_SIDE - Plant.height), "left"
-                )
-            elif elem == '@':
-                new_player = MainHero(
-                    x * TILE_SIDE - (TILE_SIDE - MainHero.width),
-                    y * TILE_SIDE + (TILE_SIDE - MainHero.height), MAIN_HERO)
-
-    return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
-
-
-def draw_top_bar():
-    """Отображение верхней панели"""
-    font = pygame.font.Font(None, 30)
-    first = (WIDTH - (50 * 4 + 50 * 4 + 250)) // 2
-    screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
-                (first, TILE_SIDE // 2 - 20))
-    screen.blit(font.render(f": {player.get_health()}",
-                            True, (0, 252, 123)),
-                (first + 50, TILE_SIDE // 2 - 10))
-    screen.blit(pygame.transform.scale(load_image('stay_shuriken.png', -1),
-                                       (36, 36)),
-                (first + 110, TILE_SIDE // 2 - 18))
-    screen.blit(font.render(f": {player.get_number_shurikens()}",
-                            True, (0, 252, 123)),
-                (first + 160, TILE_SIDE // 2 - 10))
-
-    screen.blit(pygame.transform.scale(load_image('potion_speed.png', -1),
-                                       (20, 30)),
-                (first + 220, TILE_SIDE // 2 - 15))
-
-    screen.blit(
-        font.render(player.rest_of_boost('speed') + ' с', True, (0, 252, 123)),
-        (first + 270, TILE_SIDE // 2 - 10))
-
-    screen.blit(pygame.transform.scale(load_image('potion_damage.png', -1),
-                                       (20, 30)),
-                (first + 330, TILE_SIDE // 2 - 15))
-
-    screen.blit(font.render(player.rest_of_boost('damage') + ' с', True,
-                            (0, 252, 123)),
-                (first + 380, TILE_SIDE // 2 - 10))
-
-    screen.blit(font.render(f"Врагов осталось: "
-                            f"{len(list(enemies_group))}",
-                            True, (0, 252, 123)),
-                (first + 440, TILE_SIDE // 2 - 10))
-
 
 class BaseHero(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
@@ -255,7 +142,6 @@ class MainHero(BaseHero):
                     self.number_shurikens += fruit.get_kol()
                 else:
                     self.health += fruit.get_health()
-                    print("Жизни героя", self.health)  # для отладки
                 fruit.collect()  # Собрать фрукт
 
     def collide_with_potions(self):
@@ -302,7 +188,6 @@ class MainHero(BaseHero):
                     enemy.start_attack()
             if not self.got_hit and pygame.sprite.collide_mask(self, enemy):
                 self.health -= enemy.get_damage()
-                print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
                     self.health = 0
                     break
@@ -326,7 +211,6 @@ class MainHero(BaseHero):
                         and not pygame.Rect.colliderect(self.rect,
                                                         enemy.rect2):
                     continue
-                print('герой наносит урон')
 
                 self.y_vel = -7  # Отскок вверх при прыжке на врага сверху
                 self.rect.bottom = enemy.rect.top  # Чтобы не было множественного удара
@@ -337,7 +221,6 @@ class MainHero(BaseHero):
                 if isinstance(enemy, Chameleon):
                     continue
                 self.health -= enemy.get_damage()
-                print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
                     self.health = 0
                     return
@@ -363,7 +246,6 @@ class MainHero(BaseHero):
             # Если герой не в "шоке"
             if not self.got_hit and pygame.sprite.collide_mask(self, spike):
                 self.health -= spike.get_damage()
-                print("Жизни героя", self.health)  # для отладки
                 if self.health <= 0:
                     self.health = 0
                     return
@@ -385,7 +267,6 @@ class MainHero(BaseHero):
         for bullet in pygame.sprite.spritecollide(self, bullets_group, True):
             bullet: Bullet
             self.health -= bullet.get_damage()
-            print("Жизни героя", self.health)  # для отладки
             if self.health <= 0:
                 self.health = 0
                 return

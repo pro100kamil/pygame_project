@@ -1,12 +1,10 @@
+from collections import namedtuple
 import pygame
 import pygame_gui
-from collections import namedtuple
+from functions import *
+from constants import *
+from typing import Tuple
 
-pygame.init()
-SIZE = WIDTH, HEIGHT = 750, 750
-screen = pygame.display.set_mode(SIZE)
-clock = pygame.time.Clock()
-FPS = 30
 sound = True  # вначале звук включён
 
 
@@ -29,10 +27,10 @@ def exit_warning(manager):
     )
 
 
-def menu_screen():
-    """Открывает окно меню"""
+def menu_screen() -> Tuple[str, int]:
+    """Открывает окно меню и возращает имя героя и номер выбранного уровня"""
     global sound
-    pygame.display.set_caption('Menu')
+    pygame.display.set_caption('Меню')
     hero_parameters = namedtuple('hero_parameters', 'damage speed health')
     # name: (damage, speed, health)
     heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
@@ -41,13 +39,13 @@ def menu_screen():
               'Mask Dude': hero_parameters(15, 6, 100)}
     list_heroes = list(heroes.keys())
     now = 0
-    # координаты и размер изображения гг
+    # координаты и размер изображения главного героя
     size_hero_image = 300, 300
     coord_hero_image = (WIDTH - size_hero_image[0]) // 2, 50
-    image = pygame.transform.scale(pygame.image.load("Ninja Frog.png"),
+    image = pygame.transform.scale(load_image("for menu/Ninja Frog.png"),
                                    size_hero_image)
 
-    manager = pygame_gui.UIManager(SIZE, 'style.json')
+    manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
 
     width = 31
     height = 33
@@ -109,10 +107,12 @@ def menu_screen():
                     now = (now + 1) % len(list_heroes)
                 elif event.key == pygame.K_LEFT:
                     now = (now - 1) % len(list_heroes)
+                elif event.key == pygame.K_RETURN:
+                    print('PLAY')
+                    return list_heroes[now], level_selection_screen()
                 name = list_heroes[now]
                 image = pygame.transform.scale(
-                    pygame.image.load(f"{name}.png"),
-                    size_hero_image)
+                    load_image(f"for menu/{name}.png"), size_hero_image)
                 damage_label.set_text(
                     f'Урон: {heroes[name].damage}')
                 speed_label.set_text(
@@ -125,7 +125,7 @@ def menu_screen():
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == play:
                         print('PLAY')
-                        level_selection_screen()
+                        return list_heroes[now], level_selection_screen()
                     elif event.ui_element == volume:
                         sound = not sound
                         print('Звук включён' if sound else 'Звук выключен')
@@ -147,15 +147,15 @@ def menu_screen():
     pygame.quit()
 
 
-def level_selection_screen():
-    """Открывает окно выбора уровня"""
-    pygame.display.set_caption('Level selection')
+def level_selection_screen() -> int:
+    """Открывает окно выбора уровня и возращает номер выбранного уровня"""
+    pygame.display.set_caption('Выберите уровень')
     kol_levels = 10
     images = []
     size = 80, 80
     for i in range(1, kol_levels + 1):
         images.append(pygame.transform.scale(
-            pygame.image.load(f"Levels/{str(i).rjust(2, '0')}.png"), size))
+            load_image(f"for menu/Levels/{str(i).rjust(2, '0')}.png"), size))
 
     rects = []  # прямоугольники, в которых лежат изображения
     delta = 50
@@ -169,7 +169,7 @@ def level_selection_screen():
         x = x0 + size[0] * (i - kol_levels // 2)
         rects.append(pygame.Rect(x, y, *size))
 
-    manager = pygame_gui.UIManager(SIZE, 'style.json')
+    manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
 
     width = 31
     height = 33
@@ -193,7 +193,17 @@ def level_selection_screen():
                 if event.button == 1:
                     for i, rect in enumerate(rects, start=1):
                         if pygame.Rect.collidepoint(rect, event.pos):
-                            print(i)
+                            if os.path.isfile(f'maps/level{i}.txt'):
+                                return i
+                            else:
+                                # окно с предупреждением
+                                pygame_gui.windows.UIMessageWindow(
+                                    rect=pygame.Rect(
+                                        WIDTH // 2 - 150, HEIGHT // 2 - 150,
+                                        300, 300),
+                                    html_message='Такого уровня пока нет',
+                                    manager=manager
+                                )
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     terminate()

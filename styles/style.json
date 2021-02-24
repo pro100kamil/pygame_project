@@ -1,0 +1,16 @@
+{
+  "#volume": {
+    "images": {
+      "normal_image": {
+        "path": "data\\for menu\\Volume1.png"
+      }
+    }
+  },
+  "#back": {
+    "images": {
+      "normal_image": {
+        "path": "data\\for menu\\Back1.png"
+      }
+    }
+  }
+}

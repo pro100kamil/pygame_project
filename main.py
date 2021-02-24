@@ -1,6 +1,7 @@
 import os
 import pygame
 
+from menu import menu_screen, level_selection_screen
 from constants import *
 from functions import *
 from enemy import *
@@ -9,7 +10,6 @@ from weapon import Shuriken
 from main_character import MainHero
 
 pygame.init()
-MAIN_HERO = 'Virtual Guy'
 
 
 def load_level(filename):
@@ -86,13 +86,18 @@ def load_level(filename):
 
 
 if __name__ == "__main__":
+    MAIN_HERO, level_num = menu_screen()
+    pygame.display.set_caption('Игра')
+
+    # # запуск без меню
+    # MAIN_HERO = 'Virtual Guy'
+    # level_num = 1
+
     running = True
     pause = False
     last_pause = 0
 
-    clock = pygame.time.Clock()
-
-    player, level_x, level_y = load_level('map.txt')
+    player, level_x, level_y = load_level(f'level{level_num}.txt')
 
     camera = Camera(level_x, level_y)
 
