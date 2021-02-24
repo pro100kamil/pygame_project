@@ -1,7 +1,7 @@
 import pygame
 
 TILE_SIDE = 50
-SIZE = WIDTH, HEIGHT = 750, 750  # size game_screen
+SIZE = WIDTH, HEIGHT = 750, 750  # размер игрового окна
 FPS = 30
 GRAVITY = 12 / FPS
 

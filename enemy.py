@@ -10,6 +10,7 @@ from weapon import Bullet
 
 
 class Enemy(pygame.sprite.Sprite):
+    """Базовый класс врага"""
     def __init__(self, x, y, width, height):
         super().__init__(enemies_group, all_sprites)
 
@@ -44,7 +45,6 @@ class Enemy(pygame.sprite.Sprite):
         # то он будет снижаться с начальной скоростью 5
         self.y_vel = 5 if self.y_vel < 0 else self.y_vel
         if self.health <= 0:
-            print(type(self), "повержен")
             self.health = 0
 
     def get_damage(self):
@@ -60,7 +60,7 @@ class Enemy(pygame.sprite.Sprite):
         return self.health
 
     def check_hit(self):
-        # Проверка на наличие удара от ГГ
+        """Проверка на наличие удара от ГГ"""
 
         if self.got_hit and pygame.time.get_ticks() - self.got_hit < 500:
             self.animations['hit'].play()
@@ -72,15 +72,15 @@ class Enemy(pygame.sprite.Sprite):
         return False
 
     def defeat(self):
-        # Метод, отвечающий за смерть врага
+        """Смерть врага"""
 
         if self.health == 0:
             self.damage = 0
             self.x_vel, self.y_vel = 0, 8  # начальная скорость падения
 
             frame = self.animations['hit'].getCurrentFrame()
-            if self.animations['hit'].currentFrameNum + 1 == self.animations[
-                'hit'].numFrames:
+            if self.animations['hit'].currentFrameNum + 1 == \
+                    self.animations['hit'].numFrames:
                 self.animations['hit'].pause()
             else:
                 self.animations['hit'].play()
@@ -102,11 +102,11 @@ class Enemy(pygame.sprite.Sprite):
         return False
 
 
-class BouncedEnemy(Enemy):
+class Bunny(Enemy):
     width, height = 34, 44
 
     def __init__(self, x, y, jump):
-        super().__init__(x, y, BouncedEnemy.width, BouncedEnemy.height)
+        super().__init__(x, y, Bunny.width, Bunny.height)
         self.jump, self.x_vel, self.y_vel = jump, 0, 0
         self.last_fall = pygame.time.get_ticks()
         self.just_fell = True
@@ -463,7 +463,7 @@ class Rino(Enemy):
         speed = 14
         self.x_vel, self.y_vel = -speed, 0
         self.prev_x_vel = 0
-        self.health = 60  # количество жизней
+        self.health = 65  # количество жизней
         self.damage = 25  # урон, который наносит враг при атаке
 
         self.animations = {'hit': pyganim.PygAnimation(cut_sheet(

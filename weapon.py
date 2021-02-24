@@ -1,4 +1,3 @@
-import os
 import pygame
 import pyganim
 
@@ -7,11 +6,8 @@ from functions import *
 
 
 class Shuriken(pygame.sprite.Sprite):
+    """Сюрикен"""
     width, height = 25, 25
-
-    move_anim = pyganim.PygAnimation(
-        cut_sheet('move_shuriken.png', 1, 13, anim_delay=100))
-    move_anim.play()
 
     def __init__(self, x, y, direction, range_flight=200):
         super().__init__(all_sprites)
@@ -22,9 +18,13 @@ class Shuriken(pygame.sprite.Sprite):
         self.image.fill('black')
         self.image.set_colorkey('black')
 
+        self.move_anim = pyganim.PygAnimation(
+            cut_sheet('move_shuriken.png', 1, 13, anim_delay=100))
+        self.move_anim.play()
+
         self.direction = direction
         if self.direction == "right":
-            Shuriken.move_anim.flip(True, False)
+            self.move_anim.flip(True, False)
         self.range_flight = range_flight  # дальность полёта
         self.delta = self.range_flight / 26
         self.flown = 0  # сколько сюрикен уже пролетел
@@ -37,7 +37,7 @@ class Shuriken(pygame.sprite.Sprite):
         else:
             self.rect.x -= self.delta
         self.flown += self.delta
-        Shuriken.move_anim.blit(self.image, (0, 0))
+        self.move_anim.blit(self.image, (0, 0))
 
     def update(self):
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):

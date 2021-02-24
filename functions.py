@@ -1,5 +1,6 @@
 import os
 import pygame
+from constants import *
 
 
 def cut_sheet(filename, rows, cols, anim_delay):
@@ -44,3 +45,44 @@ def load_image(name, color_key=None):
     else:
         image = image.convert_alpha()
     return image
+
+
+def draw_top_bar():
+    """Отображение верхней панели"""
+    if not list(player_group):
+        return
+    player = list(player_group)[0]
+    font = pygame.font.Font(None, 30)
+    first = (WIDTH - (50 * 4 + 50 * 4 + 250)) // 2
+    screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
+                (first, TILE_SIDE // 2 - 20))
+    screen.blit(font.render(f": {player.get_health()}",
+                            True, (0, 252, 123)),
+                (first + 50, TILE_SIDE // 2 - 10))
+    screen.blit(pygame.transform.scale(load_image('stay_shuriken.png', -1),
+                                       (36, 36)),
+                (first + 110, TILE_SIDE // 2 - 18))
+    screen.blit(font.render(f": {player.get_number_shurikens()}",
+                            True, (0, 252, 123)),
+                (first + 160, TILE_SIDE // 2 - 10))
+
+    screen.blit(pygame.transform.scale(load_image('potion_speed.png', -1),
+                                       (20, 30)),
+                (first + 220, TILE_SIDE // 2 - 15))
+
+    screen.blit(
+        font.render(player.rest_of_boost('speed') + ' с', True, (0, 252, 123)),
+        (first + 270, TILE_SIDE // 2 - 10))
+
+    screen.blit(pygame.transform.scale(load_image('potion_damage.png', -1),
+                                       (20, 30)),
+                (first + 330, TILE_SIDE // 2 - 15))
+
+    screen.blit(font.render(player.rest_of_boost('damage') + ' с', True,
+                            (0, 252, 123)),
+                (first + 380, TILE_SIDE // 2 - 10))
+
+    screen.blit(font.render(f"Врагов осталось: "
+                            f"{len(list(enemies_group))}",
+                            True, (0, 252, 123)),
+                (first + 440, TILE_SIDE // 2 - 10))

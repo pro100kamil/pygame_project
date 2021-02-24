@@ -12,12 +12,11 @@ from some_classes import *
 from weapon import Shuriken
 
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-MAIN_HERO = 'Virtual Guy'
 # name: (damage, speed, health)
-heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
+heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
           'Pink Man': hero_parameters(20, 4, 120),
-          'Virtual Guy': hero_parameters(15, 7, 95),
-          'Mask Dude': hero_parameters(15, 6, 100)}
+          'Virtual Guy': hero_parameters(15, 6, 95),
+          'Mask Dude': hero_parameters(15, 5, 100)}
 
 pygame.init()
 
@@ -65,7 +64,7 @@ def load_level(filename):
                 Backpack(x * TILE_SIDE + (TILE_SIDE - Backpack.width) / 2,
                          y * TILE_SIDE + (TILE_SIDE - Backpack.height) / 2)
             elif elem == 'b':
-                BouncedEnemy(x * TILE_SIDE, y * TILE_SIDE, 10)
+                Bunny(x * TILE_SIDE, y * TILE_SIDE, 10)
             elif elem == 'm':
                 Mushroom(x * TILE_SIDE, y * TILE_SIDE, -3.5, 100)
             elif elem == 's':
@@ -93,6 +92,44 @@ def load_level(filename):
                     y * TILE_SIDE + (TILE_SIDE - MainHero.height), MAIN_HERO)
 
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
+
+
+def draw_top_bar():
+    """Отображение верхней панели"""
+    font = pygame.font.Font(None, 30)
+    first = (WIDTH - (50 * 4 + 50 * 4 + 250)) // 2
+    screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
+                (first, TILE_SIDE // 2 - 20))
+    screen.blit(font.render(f": {player.get_health()}",
+                            True, (0, 252, 123)),
+                (first + 50, TILE_SIDE // 2 - 10))
+    screen.blit(pygame.transform.scale(load_image('stay_shuriken.png', -1),
+                                       (36, 36)),
+                (first + 110, TILE_SIDE // 2 - 18))
+    screen.blit(font.render(f": {player.get_number_shurikens()}",
+                            True, (0, 252, 123)),
+                (first + 160, TILE_SIDE // 2 - 10))
+
+    screen.blit(pygame.transform.scale(load_image('potion_speed.png', -1),
+                                       (20, 30)),
+                (first + 220, TILE_SIDE // 2 - 15))
+
+    screen.blit(
+        font.render(player.rest_of_boost('speed') + ' с', True, (0, 252, 123)),
+        (first + 270, TILE_SIDE // 2 - 10))
+
+    screen.blit(pygame.transform.scale(load_image('potion_damage.png', -1),
+                                       (20, 30)),
+                (first + 330, TILE_SIDE // 2 - 15))
+
+    screen.blit(font.render(player.rest_of_boost('damage') + ' с', True,
+                            (0, 252, 123)),
+                (first + 380, TILE_SIDE // 2 - 10))
+
+    screen.blit(font.render(f"Врагов осталось: "
+                            f"{len(list(enemies_group))}",
+                            True, (0, 252, 123)),
+                (first + 440, TILE_SIDE // 2 - 10))
 
 
 class BaseHero(pygame.sprite.Sprite):
@@ -139,8 +176,10 @@ class MainHero(BaseHero):
         self.last_damage = self.damage
         self.boost_duration = 0  # Длительность буста текущего зелья
         # Последний сбор буста. Нужно для вычисления остатка действия зелья
-        self.boosts = {'damage': {'boost_duration': 0, 'last_boost': 0, 'effect': self.set_damage},
-                       'speed': {'boost_duration': 0, 'last_boost': 0, 'effect': self.set_speed}}
+        self.boosts = {'damage': {'boost_duration': 0, 'last_boost': 0,
+                                  'effect': self.set_damage},
+                       'speed': {'boost_duration': 0, 'last_boost': 0,
+                                 'effect': self.set_speed}}
         self.key_up_is_raised = False
         self.is_appeared = False
 
@@ -189,6 +228,7 @@ class MainHero(BaseHero):
     def collide(self, x_vel, y_vel):
         """Обработка столкновений с платформами"""
         for platform in pygame.sprite.spritecollide(self, platforms, False):
+            platform: Platform
             if x_vel < 0:
                 self.rect.left = platform.rect.right
                 self.x_vel = 0
@@ -219,7 +259,7 @@ class MainHero(BaseHero):
                 fruit.collect()  # Собрать фрукт
 
     def collide_with_potions(self):
-        """Взятие зелья скорости"""
+        """Обработка столкновений с зельями"""
 
         for potion in potions_group:
             potion: Potion
@@ -254,7 +294,8 @@ class MainHero(BaseHero):
                 enemy.rect2.x + (enemy.rect2.width / 4),
                 enemy.rect2.y, enemy.rect2.width / 2,
                 enemy.rect2.height / 4)
-            if self.y_vel > 1 and pygame.rect.Rect.colliderect(self.rect, enemy_head):
+            if self.y_vel > 1 and pygame.rect.Rect.colliderect(self.rect,
+                                                               enemy_head):
                 continue
             if pygame.Rect.colliderect(self.rect, enemy.rect):
                 if enemy.get_health() > 0 and not enemy.attack:
@@ -340,7 +381,7 @@ class MainHero(BaseHero):
                 self.y_vel = -5 if self.y_vel > 0 else 5
 
     def collide_with_bullets(self):
-        """Пуля попадает в героя"""
+        """Обработка столкновений с пулями (пуля попадает в героя)"""
         for bullet in pygame.sprite.spritecollide(self, bullets_group, True):
             bullet: Bullet
             self.health -= bullet.get_damage()
@@ -386,6 +427,7 @@ class MainHero(BaseHero):
             self.y_vel = 1
             self.on_ground = False
 
+        # проверяем столкновения
         self.collide_with_spikes()
         self.collide_with_enemies()
         self.collide_with_fruits()
@@ -411,7 +453,8 @@ class MainHero(BaseHero):
 
         for name in self.boosts:
             if self.boosts[name]['last_boost'] and \
-                    now - self.boosts[name]['last_boost'] > self.boosts[name]['boost_duration']:
+                    now - self.boosts[name]['last_boost'] > \
+                    self.boosts[name]['boost_duration']:
                 self.boosts[name]['effect'](0)
                 self.boosts[name]['last_boost'] = 0
 
@@ -455,20 +498,22 @@ class MainHero(BaseHero):
                 self.on_ground = False
                 self.y_vel = -self.height_jump
                 self.jump = pygame.time.get_ticks()
-                self.key_up_is_raised = False  # Флаг - отжата ли клавиша "вверх"
+                # Флаг - отжата ли клавиша "вверх"
+                self.key_up_is_raised = False
 
-            # Если герой не на земле, клавиша вверх отжата, и прошло меньше 1500 мс после прыжка
+            # Если герой не на земле, клавиша вверх отжата,
+            # и прошло меньше 1500 мс после прыжка
             elif self.key_up_is_raised and self.jump and now - self.jump < 1500:
                 self.double_jump = True
                 self.y_vel = -self.height_jump
                 self.jump = False
-                self.animations[
-                    'double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
+                # Сбрасываем анимацию двойного прыжка
+                self.animations['double_jump'].stop()
         else:
             self.key_up_is_raised = True
-
+        # Если нажата клавиша вниз, то сбивается весь прыжок
         if pygame.key.get_pressed()[pygame.K_DOWN]:
-            self.jump = False  # Если нажата клавиша вниз, то сбивается весь прыжок
+            self.jump = False
             if not self.on_ground:
                 self.y_vel = 1.4 * self.height_jump
 
@@ -478,11 +523,8 @@ class MainHero(BaseHero):
                 self.on_ground = False
                 self.y_vel = -1.4 * self.height_jump
                 self.double_jump = True
-                self.animations[
-                    'double_jump'].stop()  # Сбрасываем анимацию двойного прыжка
-
-        if pygame.key.get_pressed()[pygame.K_f]:
-            self.health = 0
+                # Сбрасываем анимацию двойного прыжка
+                self.animations['double_jump'].stop()
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
@@ -496,7 +538,7 @@ class MainHero(BaseHero):
                 self.animations['jump'].blit(self.image, (0, 0))
 
     def attack(self):
-        """Атака героя"""
+        """Атака героя сюрикеном"""
         if self.number_shurikens:
             Shuriken(self.rect.right
                      if self.direction == "right" else self.rect.left,
@@ -511,8 +553,8 @@ class MainHero(BaseHero):
         self.rect = self.rect.move(self.x_vel, self.y_vel)
 
         frame = self.animations['hit'].getCurrentFrame()
-        if self.animations['hit'].currentFrameNum + 1 == self.animations[
-            'hit'].numFrames:
+        if self.animations['hit'].currentFrameNum + 1 == \
+                self.animations['hit'].numFrames:
             self.animations['hit'].pause()
         else:
             self.animations['hit'].play()
@@ -542,7 +584,8 @@ class MainHero(BaseHero):
         if not self.boosts[name]['last_boost']:
             return '0'
         return str(ceil((self.boosts[name]['boost_duration'] -
-                         (pygame.time.get_ticks() - self.boosts[name]['last_boost'])) / 1000))
+                         (pygame.time.get_ticks() - self.boosts[name][
+                             'last_boost'])) / 1000))
 
     def set_speed(self, speedup):
         self.speed = self.last_speed + speedup
@@ -551,94 +594,6 @@ class MainHero(BaseHero):
         self.damage = self.last_damage + delta_damage
 
     def add_paused_time(self, time):
-        # Добавляем к каждому бусту время паузы
+        """Добавление к каждому бусту время паузы"""
         for name in self.boosts:
             self.boosts[name]['last_boost'] += time
-
-
-if __name__ == "__main__":
-    running = True
-    pause = False
-    last_pause = 0
-
-    clock = pygame.time.Clock()
-
-    player, level_x, level_y = load_level('map.txt')
-
-    camera = Camera(level_x, level_y)
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.KEYDOWN:
-                # через события, чтобы вылетал один сюрикен
-                if event.key == pygame.K_RETURN and not pause:
-                    player.attack()
-                elif event.key == pygame.K_p:
-                    pause = not pause
-                    if pause:
-                        last_pause = pygame.time.get_ticks()
-                    else:
-                        # Добавление упущенного во время паузы времени
-                        player.add_paused_time(pygame.time.get_ticks() - last_pause)
-        if pause:
-            continue
-
-        game_screen.fill(pygame.Color("light blue"))
-        screen.fill(pygame.Color("#11A550"))
-
-        all_sprites.update()
-
-        if player.health:
-            # изменяем ракурс камеры
-            camera.update(player)
-        # обновляем положение всех спрайтов
-        for sprite in all_sprites:
-            if not issubclass(type(sprite), Enemy) and not isinstance(sprite,
-                                                                      MainHero):
-                game_screen.blit(sprite.image, camera.apply(sprite))
-
-        # рисуем врагов отдельно, чтобы они не были над другими текстурами
-        for sprite in enemies_group:
-            game_screen.blit(sprite.image, camera.apply(sprite))
-
-        game_screen.blit(player.image, camera.apply(player))
-
-        screen.blit(game_screen, (0, TILE_SIDE))
-
-        font = pygame.font.Font(None, 30)
-        first = (WIDTH - (50 * 4 + 50 * 4 + 250)) // 2
-        screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
-                    (first, TILE_SIDE // 2 - 20))
-        screen.blit(font.render(f": {player.get_health()}",
-                                True, (0, 252, 123)),
-                    (first + 50, TILE_SIDE // 2 - 10))
-        screen.blit(pygame.transform.scale(load_image('stay_shuriken.png', -1),
-                                           (36, 36)),
-                    (first + 110, TILE_SIDE // 2 - 18))
-        screen.blit(font.render(f": {player.get_number_shurikens()}",
-                                True, (0, 252, 123)),
-                    (first + 160, TILE_SIDE // 2 - 10))
-
-        screen.blit(pygame.transform.scale(load_image('potion_speed.png', -1),
-                                           (20, 30)), (first + 220, TILE_SIDE // 2 - 15))
-
-        screen.blit(font.render(player.rest_of_boost('speed') + ' с', True, (0, 252, 123)),
-                    (first + 270, TILE_SIDE // 2 - 10))
-
-        screen.blit(pygame.transform.scale(load_image('potion_damage.png', -1),
-                                           (20, 30)), (first + 330, TILE_SIDE // 2 - 15))
-
-        screen.blit(font.render(player.rest_of_boost('damage') + ' с', True, (0, 252, 123)),
-                    (first + 380, TILE_SIDE // 2 - 10))
-
-        screen.blit(font.render(f"Врагов осталось: "
-                                f"{len(list(enemies_group))}",
-                                True, (0, 252, 123)),
-                    (first + 440, TILE_SIDE // 2 - 10))
-
-        pygame.display.flip()
-        clock.tick(FPS)
-
-    pygame.quit()
