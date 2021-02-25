@@ -42,6 +42,8 @@ class Shuriken(pygame.sprite.Sprite):
     def update(self):
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
             enemy.get_hit(self.damage)
+
+            sound_manager.play_hit()
             self.kill()
         if self.flown + self.delta <= self.range_flight and \
                 not pygame.sprite.spritecollideany(self, platforms) and \
@@ -101,9 +103,3 @@ class Bullet(pygame.sprite.Sprite):
         else:  # полёт закончен
             self.flown = 0
             self.kill()
-
-    def get_damage(self):
-        return self.damage
-
-    def get_direction(self):
-        return self.direction

@@ -122,6 +122,9 @@ class MainHero(BaseHero):
                 self.rect.right = platform.rect.left
                 self.x_vel = 0
             elif y_vel > 0:
+                if self.y_vel > 1:
+                    sound_manager.play_land()
+
                 self.on_ground = True
                 self.jump = False
                 self.rect.bottom = platform.rect.top
@@ -157,6 +160,9 @@ class MainHero(BaseHero):
                 self.boosts[name]['effect'](potion.get_boost())
                 self.boosts[name]['last_boost'] = pygame.time.get_ticks()
                 self.boosts[name]['boost_duration'] = potion.get_duration()
+
+                sound_manager.play_potion_collected()
+
                 potion.collect()
 
     def collide_with_checkpoints(self):
@@ -191,6 +197,7 @@ class MainHero(BaseHero):
                 self.health -= enemy.get_damage()
                 if self.health <= 0:
                     self.health = 0
+                    sound_manager.play_game_over()
                     break
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
                 enemy_x_vel = enemy.get_x_vel()
@@ -226,6 +233,7 @@ class MainHero(BaseHero):
                 self.health -= enemy.get_damage()
                 if self.health <= 0:
                     self.health = 0
+                    sound_manager.play_game_over()
                     return
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
@@ -253,6 +261,7 @@ class MainHero(BaseHero):
                 self.health -= spike.get_damage()
                 if self.health <= 0:
                     self.health = 0
+                    sound_manager.play_game_over()
                     return
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
@@ -276,6 +285,7 @@ class MainHero(BaseHero):
             self.health -= bullet.get_damage()
             if self.health <= 0:
                 self.health = 0
+                sound_manager.play_game_over()
                 return
 
             self.got_hit = pygame.time.get_ticks()  # Время последнего удара
@@ -418,6 +428,7 @@ class MainHero(BaseHero):
                 self.double_jump = True
                 # Сбрасываем анимацию двойного прыжка
                 self.animations['double_jump'].stop()
+                sound_manager.play_jump()
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
@@ -433,7 +444,7 @@ class MainHero(BaseHero):
     def attack(self):
         """Атака героя сюрикеном"""
         if self.number_shurikens:
-            Shuriken(self.rect.right
+            Shuriken(self.rect.right - 20
                      if self.direction == "right" else self.rect.left,
                      self.rect.top, self.direction).move()
             self.number_shurikens -= 1
