@@ -1,4 +1,5 @@
 import pygame
+from sound_manager import SoundManager
 
 TILE_SIDE = 50
 SIZE = WIDTH, HEIGHT = 750, 750  # размер игрового окна
@@ -20,3 +21,4 @@ potions_group = pygame.sprite.Group()
 chameleons = pygame.sprite.Group()
 spikes_group = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
+sound_manager = SoundManager()
