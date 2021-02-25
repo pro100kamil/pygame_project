@@ -135,9 +135,6 @@ def menu_screen() -> Tuple[str, int]:
 
         screen.fill(pygame.Color('#E5D007'))
 
-        screen.fill(pygame.Color('light blue'), (*coord_hero_image,
-                                                 *size_hero_image))
-
         screen.blit(image, (*coord_hero_image,
                             *size_hero_image))
 
