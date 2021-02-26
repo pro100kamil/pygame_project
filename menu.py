@@ -101,7 +101,7 @@ def menu_screen():
     running = True
 
     while running:
-        time_delta = clock.tick(60) / 1000.0
+        time_delta = 1000 / FPS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit_warning(manager)
@@ -194,7 +194,7 @@ def level_selection_screen():
 
     running = True
     while running:
-        time_delta = clock.tick(60) / 1000.0
+        time_delta = 1000 / FPS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.display.set_caption('Меню')
@@ -294,7 +294,7 @@ def level_complete_screen():
 
     running = True
     while running:
-        time_delta = clock.tick(60) / 1000.0
+        time_delta = 1000 / FPS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.display.set_caption('Меню')
@@ -435,7 +435,7 @@ def game():
     camera = Camera(level_x, level_y)
 
     while running:
-        time_delta = clock.tick(60) / 1000.0
+        time_delta = 1000 / FPS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # если герой погиб, то просто закрываем игровое окно
