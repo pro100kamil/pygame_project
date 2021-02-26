@@ -6,8 +6,6 @@ from enemy import *
 from main_character import MainHero
 from some_classes import *
 
-pygame.init()
-
 
 def terminate():
     """Немедленный выход"""
@@ -15,21 +13,22 @@ def terminate():
     exit(0)
 
 
-def exit_warning(manager):
+def exit_warning(manager, msg='Вы уверены, что хотите выйти?'):
     """Открывает окно с предупреждением о выходе"""
     pygame_gui.windows.UIConfirmationDialog(
         rect=pygame.Rect((WIDTH // 2 - 150, HEIGHT // 2 - 100),
                          (300, 200)),
         manager=manager,
         window_title='Подтверждение',
-        action_long_desc='Вы уверены, что хотите выйти?',
+        action_long_desc=msg,
         action_short_name='OK',
-        blocking=True
+        blocking=False
     )
 
 
 def menu_screen():
     """Открывает окно меню и возращает имя героя и номер выбранного уровня"""
+
     sound = True  # вначале звук включён
     pygame.display.set_caption('Меню')
     hero_parameters = namedtuple('hero_parameters', 'damage speed health')
@@ -45,9 +44,7 @@ def menu_screen():
     coord_hero_image = (WIDTH - size_hero_image[0]) // 2, 50
     image = pygame.transform.scale(load_image("for menu/Ninja Frog.png"),
                                    size_hero_image)
-
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
-
     width = 31
     height = 33
     x = coord_hero_image[0] + (size_hero_image[0] - width) // 2
@@ -55,7 +52,7 @@ def menu_screen():
     volume = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(x, y, width, height),
         text='',
-        tool_tip_text='Нажмите, чтобы выключить звук',
+        tool_tip_text='Нажмите, чтобы включить/выключить звук',
         object_id='#volume',
         manager=manager
     )
@@ -114,9 +111,12 @@ def menu_screen():
                     if num_level is not None:
                         game(list_heroes[now], num_level)
                     continue
+                elif event.key == pygame.K_ESCAPE:
+                    exit_warning(manager)
                 name = list_heroes[now]
                 image = pygame.transform.scale(
                     load_image(f"for menu/{name}.png"), size_hero_image)
+                name_label.set_text(name)
                 damage_label.set_text(
                     f'Урон: {heroes[name].damage}')
                 speed_label.set_text(
@@ -164,7 +164,6 @@ def level_selection_screen() -> int or None:
     for i in range(1, kol_levels + 1):
         images.append(pygame.transform.scale(
             load_image(f"for menu/Levels/{str(i).rjust(2, '0')}.png"), size))
-
     rects = []  # прямоугольники, в которых лежат изображения
     delta = 50
     y = (HEIGHT - size[1] * 2 - delta) // 2
@@ -191,6 +190,8 @@ def level_selection_screen() -> int or None:
         manager=manager
     )
 
+    manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
+
     running = True
     while running:
         time_delta = clock.tick(60) / 1000.0
@@ -198,7 +199,6 @@ def level_selection_screen() -> int or None:
             if event.type == pygame.QUIT:
                 pygame.display.set_caption('Меню')
                 running = False
-                exit_warning(manager)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     for i, rect in enumerate(rects, start=1):
@@ -209,11 +209,15 @@ def level_selection_screen() -> int or None:
                                 # окно с предупреждением
                                 pygame_gui.windows.UIMessageWindow(
                                     rect=pygame.Rect(
-                                        WIDTH // 2 - 150, HEIGHT // 2 - 150,
+                                        WIDTH // 2 - 150, HEIGHT // 2 + 150,
                                         300, 300),
                                     html_message='Такого уровня пока нет',
                                     manager=manager
                                 )
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.display.set_caption('Меню')
+                    running = False
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == back:
@@ -322,6 +326,8 @@ def game(MAIN_HERO, level_num):
     # MAIN_HERO = 'Virtual Guy'
     # level_num = 1
 
+    manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
+
     running = True
     pause = False
     last_pause = 0
@@ -332,10 +338,14 @@ def game(MAIN_HERO, level_num):
     camera = Camera(level_x, level_y)
 
     while running:
+        time_delta = clock.tick(60) / 1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.KEYDOWN:
+                pause = True
+                last_pause = pygame.time.get_ticks()
+                exit_warning(manager, 'Вы уверены, что хотите выйти? '
+                                      'Ваш прогресс не сохранится.')
+            elif event.type == pygame.KEYDOWN:
                 # через события, чтобы вылетал один сюрикен
                 if event.key == pygame.K_RETURN and not pause:
                     player.attack()
@@ -347,27 +357,51 @@ def game(MAIN_HERO, level_num):
                         # Добавление упущенного во время паузы времени
                         player.add_paused_time(
                             pygame.time.get_ticks() - last_pause)
-        if pause:
-            continue
+                elif event.key == pygame.K_ESCAPE:
+                    pause = True
+                    last_pause = pygame.time.get_ticks()
+                    exit_warning(manager, 'Вы уверены, что хотите выйти? '
+                                          'Ваш прогресс не сохранится.')
+            elif event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                    pygame.display.set_caption('Меню')
+                    running = False
+                # крестик или cancel в диалоговом окне
+                if event.user_type == pygame_gui.UI_WINDOW_CLOSE:
+                    pause = False
+                    # Добавление упущенного во время паузы времени
+                    player.add_paused_time(
+                        pygame.time.get_ticks() - last_pause)
+            manager.process_events(event)
+
+        manager.update(time_delta)
+
+        # if pause:
+        #     manager.draw_ui(screen)
+        #     pygame.display.flip()
+        #     clock.tick(FPS)
+        #     continue
 
         game_screen.fill(pygame.Color("light blue"))
-        screen.fill(pygame.Color("#11A550"))
+        if not pause:
+            screen.fill(pygame.Color("#11A550"))
 
-        all_sprites.update()
+        if not pause:
+            all_sprites.update()
 
-        if player.get_health():
-            # изменяем ракурс камеры
-            camera.update(player)
-        elif not list(player_group):  # спрайт героя исчез
+            if player.get_health():
+                # изменяем ракурс камеры
+                camera.update(player)
+            elif not list(player_group):  # спрайт героя исчез
 
-            # после окончания игры удаляем спрайты
-            for sprite in all_sprites:
-                sprite.kill()
-            game_screen.blit(
-                pygame.transform.scale(load_image("gameover.png"),
-                                       (WIDTH, HEIGHT)),
-                (0, 0))
-            # running = False
+                # после окончания игры удаляем спрайты
+                for sprite in all_sprites:
+                    sprite.kill()
+                game_screen.blit(
+                    pygame.transform.scale(load_image("gameover.png"),
+                                           (WIDTH, HEIGHT)),
+                    (0, 0))
+                # running = False
 
         # обновляем положение всех спрайтов
         for sprite in all_sprites:
@@ -382,9 +416,10 @@ def game(MAIN_HERO, level_num):
         game_screen.blit(player.image, camera.apply(player))
 
         screen.blit(game_screen, (0, TILE_SIDE))
+        if not pause:
+            draw_top_bar()
 
-        draw_top_bar()
-
+        manager.draw_ui(screen)
         pygame.display.flip()
         clock.tick(FPS)
 

@@ -34,7 +34,8 @@ class SoundManager:
     sounds['hit'].set_volume(0.2)
     sounds['potion'].set_volume(0.2)
 
-    music.load('music/background_tango_short.wav')
+    music.load('music/song.mp3')
+    # music.load('music/background_tango_short.wav')
     music.play(-1)
     music.set_volume(0.3)
 

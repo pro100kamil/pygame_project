@@ -1,4 +1,5 @@
 import pygame
+import pygame_gui
 from sound_manager import SoundManager
 
 TILE_SIDE = 50
