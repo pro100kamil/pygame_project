@@ -27,22 +27,18 @@ class SoundManager:
 
               'game_over_voice': Sound('sounds/voice_game_over.mp3'),
 
-              'game_over': Sound('sounds/game_over_finally.wav')}
+              'game_over': Sound('sounds/game_over_finally.wav'),
+
+              'victory': Sound('sounds/sound_victory.wav')}
 
     sounds['move_on_ground'].set_volume(0.2)
     sounds['fruit'].set_volume(0.2)
     sounds['hit'].set_volume(0.2)
     sounds['potion'].set_volume(0.2)
 
-    music.load('music/song.mp3')
-    # music.load('music/background_tango_short.wav')
-    music.play(-1)
-    music.set_volume(0.3)
-
     @staticmethod
     def start_sound():
         """Включает звук в игре"""
-        music.set_volume(0.3)
         for k, v in SoundManager.sounds.items():
             if k in {'move_on_ground', 'fruit', 'hit', 'potion'}:
                 v.set_volume(0.2)
@@ -77,8 +73,12 @@ class SoundManager:
         music.fadeout(time)
 
     @staticmethod
-    def stop_music():
-        music.stop()
+    def pause_music():
+        music.pause()
+
+    @staticmethod
+    def unpause_music():
+        music.unpause()
 
     @staticmethod
     def play_music():
@@ -117,8 +117,35 @@ class SoundManager:
 
     @staticmethod
     def play_game_over():
-        # mixer.music.stop()
+        mixer.music.fadeout(500)
         SoundManager.sounds['game_over'].play()
+
+    @staticmethod
+    def play_menu_music():
+        for sound in SoundManager.sounds.values():
+            sound: Sound
+            sound.stop()
+        mixer.music.fadeout(500)
+        mixer.music.unload()
+        mixer.music.load('music/background.mp3')
+        mixer.music.set_volume(1)
+        mixer.music.play(-1)
+
+    @staticmethod
+    def play_game_music():
+        for sound in SoundManager.sounds.values():
+            sound: Sound
+            sound.stop()
+        mixer.music.fadeout(500)
+        mixer.music.unload()
+        mixer.music.load('music/background_tango_short.wav')
+        music.set_volume(0.3)
+        mixer.music.play(-1)
+
+    @staticmethod
+    def play_victory():
+        mixer.music.fadeout(500)
+        SoundManager.sounds['victory'].play()
 
     def update(self):
         pass

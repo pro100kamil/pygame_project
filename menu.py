@@ -29,6 +29,9 @@ def exit_warning(manager, msg='Вы уверены, что хотите выйт
 def menu_screen():
     """Открывает окно меню и возращает имя героя и номер выбранного уровня"""
     global MAIN_HERO
+
+    sound_manager.play_menu_music()
+
     pygame.display.set_icon(load_image('for menu/Ninja Frog.png'))
     sound = True  # вначале звук включён
     pygame.display.set_caption('Меню')
@@ -249,6 +252,7 @@ def level_selection_screen():
 def level_complete_screen():
     """Открывает окно после прохождения уровня"""
     global NOW_LEVEL
+
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
 
     width = 31
@@ -303,7 +307,9 @@ def level_complete_screen():
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == back:
                         pygame.display.set_caption('Меню')
+                        sound_manager.play_menu_music()
                     elif event.ui_element == levels:
+                        sound_manager.play_menu_music()
                         level_selection_screen()
                     elif event.ui_element == restart:
                         game()
@@ -412,6 +418,9 @@ def game():
     if NOW_LEVEL > max_level:
         level_selection_screen()
         return
+
+    sound_manager.play_game_music()
+
     pygame.display.set_caption('Игра')
 
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
@@ -439,14 +448,16 @@ def game():
                                           'Ваш прогресс не сохранится.')
             elif event.type == pygame.KEYDOWN:
                 # через события, чтобы вылетал один сюрикен
-                if event.key == pygame.K_RETURN and not pause:
+                if not list(player_group) and event.key == pygame.K_RETURN and not pause:
                     player.attack()
                 elif event.key == pygame.K_p:
                     pause = not pause
                     if pause:
+                        sound_manager.pause_music()
                         last_pause = pygame.time.get_ticks()
                     else:
                         # Добавление упущенного во время паузы времени
+                        sound_manager.unpause_music()
                         player.add_paused_time(
                             pygame.time.get_ticks() - last_pause)
                 elif event.key == pygame.K_ESCAPE:
@@ -460,7 +471,6 @@ def game():
                                               'Ваш прогресс не сохранится.')
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
-                    pygame.display.set_caption('Меню')
                     running = False
                 # крестик или cancel в диалоговом окне
                 if event.user_type == pygame_gui.UI_WINDOW_CLOSE:
@@ -479,6 +489,7 @@ def game():
         #     continue
 
         if player.is_win():
+            SoundManager.play_victory()
             level_complete_screen()
             with open('log.txt') as file:
                 max_level = int(file.read())
@@ -492,7 +503,6 @@ def game():
         if not pause:
             screen.fill(pygame.Color("#11A550"))
 
-        if not pause:
             all_sprites.update()
 
             if player.get_health():
@@ -534,6 +544,8 @@ def game():
         sprite.kill()
 
     pygame.display.set_caption('Меню')
+
+    sound_manager.play_menu_music()
 
 
 if __name__ == '__main__':

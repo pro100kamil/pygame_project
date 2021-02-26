@@ -3,7 +3,7 @@ import pygame_gui
 from sound_manager import SoundManager
 
 TILE_SIDE = 50
-SIZE = WIDTH, HEIGHT = 750, 750  # размер игрового окна
+SIZE = WIDTH, HEIGHT = 1000, 700  # размер игрового окна
 FPS = 30
 GRAVITY = 12 / FPS
 
