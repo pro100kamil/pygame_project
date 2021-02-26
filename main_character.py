@@ -197,6 +197,7 @@ class MainHero(BaseHero):
                 enemy_x_vel = enemy.get_x_vel()
                 self.x_vel = enemy_x_vel * 2
                 self.y_vel = -5
+                sound_manager.play_got_hit()
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
             enemy: Enemy
             if enemy.get_health() <= 0:

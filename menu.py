@@ -6,6 +6,8 @@ from enemy import *
 from main_character import MainHero
 from some_classes import *
 
+pygame.init()
+
 
 def terminate():
     """Немедленный выход"""
@@ -391,3 +393,7 @@ def game(MAIN_HERO, level_num):
         sprite.kill()
 
     pygame.display.set_caption('Меню')
+
+
+if __name__ == '__main__':
+    menu_screen()
