@@ -230,6 +230,8 @@ class MainHero(BaseHero):
             elif not self.got_hit:  # Если герой не в "шоке"
                 if isinstance(enemy, Chameleon):
                     continue
+                if not pygame.sprite.collide_mask(self, enemy):
+                    continue
                 self.health -= enemy.get_damage()
                 if self.health <= 0:
                     self.health = 0

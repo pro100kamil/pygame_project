@@ -27,6 +27,8 @@ class Enemy(pygame.sprite.Sprite):
         self.animations = None
         self.transparency = 255
         self.angle = 0
+        self.mask = None
+        self.max_length = 0
 
     def update(self):
         self.rect = self.rect.move(0 if self.got_hit else self.x_vel,
@@ -169,6 +171,8 @@ class Bunny(Enemy):
             else:
                 self.animations['jump'].blit(self.image, (0, 0))
 
+        self.mask = pygame.mask.from_surface(self.image)
+
 
 class WalkingEnemy(Enemy):
     width, height = 32, 34
@@ -215,6 +219,8 @@ class WalkingEnemy(Enemy):
             self.animations['stay'].blit(self.image, (0, 0))
         else:
             self.animations['run'].blit(self.image, (0, 0))
+
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Chicken(WalkingEnemy):
@@ -542,6 +548,8 @@ class Rino(Enemy):
         else:
             self.animations['run'].blit(self.image, (0, 0))
 
+        self.mask = pygame.mask.from_surface(self.image)
+
 
 class Plant(Enemy):
     width, height = 44, 42
@@ -616,3 +624,5 @@ class Plant(Enemy):
                 # Атака закончилась - выстрел пули прекратился
                 # Время начинает отсчитываться именно тогда, когда атака закончилась
                 self.last_attack = pygame.time.get_ticks()
+        self.mask = pygame.mask.from_surface(self.image)
+
