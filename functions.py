@@ -49,10 +49,13 @@ def load_image(name, color_key=None):
 
 def draw_top_bar():
     """Отображение верхней панели"""
+    font = pygame.font.Font(None, 30)
     if not list(player_group):
+        screen.blit(font.render("Вы проиграли",
+                                True, (0, 252, 123)),
+                    (WIDTH // 2 - 10, TILE_SIDE // 2 - 10))
         return
     player = list(player_group)[0]
-    font = pygame.font.Font(None, 30)
     first = (WIDTH - (50 * 4 + 50 * 4 + 250)) // 2
     screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
                 (first, TILE_SIDE // 2 - 20))

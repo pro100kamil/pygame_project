@@ -13,7 +13,7 @@ from weapon import Shuriken
 
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
 # name: (damage, speed, health)
-heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
+heroes = {'Ninja Frog': hero_parameters(15, 7, 100),
           'Pink Man': hero_parameters(20, 4, 120),
           'Virtual Guy': hero_parameters(15, 6, 95),
           'Mask Dude': hero_parameters(15, 5, 100)}
@@ -21,8 +21,8 @@ heroes = {'Ninja Frog': hero_parameters(15, 5, 100),
 
 class BaseHero(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
-        super().__init__(player_group, all_sprites)
 
+        super().__init__(player_group, all_sprites)
         self.width, self.height = width, height
 
         self.start_x, self.start_y = x, y
@@ -44,7 +44,6 @@ class MainHero(BaseHero):
 
     def __init__(self, x, y, name):
         super().__init__(x, y, MainHero.width, MainHero.height)
-
         self.direction = "right"
         self.speed = heroes[name].speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
@@ -123,6 +122,9 @@ class MainHero(BaseHero):
                 self.rect.right = platform.rect.left
                 self.x_vel = 0
             elif y_vel > 0:
+                if self.y_vel > 1:
+                    sound_manager.play_land()
+
                 self.on_ground = True
                 self.jump = False
                 self.rect.bottom = platform.rect.top
@@ -140,8 +142,10 @@ class MainHero(BaseHero):
                                                                        fruit):
                 if isinstance(fruit, Backpack):
                     self.number_shurikens += fruit.get_kol()
+                    sound_manager.play_backpack_collected()
                 else:
                     self.health += fruit.get_health()
+                    sound_manager.play_fruit_collected()
                 fruit.collect()  # Собрать фрукт
 
     def collide_with_potions(self):
@@ -156,6 +160,9 @@ class MainHero(BaseHero):
                 self.boosts[name]['effect'](potion.get_boost())
                 self.boosts[name]['last_boost'] = pygame.time.get_ticks()
                 self.boosts[name]['boost_duration'] = potion.get_duration()
+
+                sound_manager.play_potion_collected()
+
                 potion.collect()
 
     def collide_with_checkpoints(self):
@@ -190,6 +197,7 @@ class MainHero(BaseHero):
                 self.health -= enemy.get_damage()
                 if self.health <= 0:
                     self.health = 0
+                    sound_manager.play_game_over()
                     break
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
                 enemy_x_vel = enemy.get_x_vel()
@@ -216,6 +224,8 @@ class MainHero(BaseHero):
                 self.rect.bottom = enemy.rect.top  # Чтобы не было множественного удара
                 enemy.get_hit(self.damage)
 
+                sound_manager.play_hit()
+
             # движение по оси X или вверх по оси Y (герой получает урон)
             elif not self.got_hit:  # Если герой не в "шоке"
                 if isinstance(enemy, Chameleon):
@@ -223,6 +233,7 @@ class MainHero(BaseHero):
                 self.health -= enemy.get_damage()
                 if self.health <= 0:
                     self.health = 0
+                    sound_manager.play_game_over()
                     return
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
@@ -239,6 +250,8 @@ class MainHero(BaseHero):
                     self.x_vel = -delta
                 self.y_vel = -5
 
+                sound_manager.play_got_hit()
+
     def collide_with_spikes(self):
         """Обработка столкновений с шипами"""
         for spike in spikes_group:
@@ -248,6 +261,7 @@ class MainHero(BaseHero):
                 self.health -= spike.get_damage()
                 if self.health <= 0:
                     self.health = 0
+                    sound_manager.play_game_over()
                     return
 
                 self.got_hit = pygame.time.get_ticks()  # Время последнего удара
@@ -262,6 +276,8 @@ class MainHero(BaseHero):
 
                 self.y_vel = -5 if self.y_vel > 0 else 5
 
+                sound_manager.play_got_hit()
+
     def collide_with_bullets(self):
         """Обработка столкновений с пулями (пуля попадает в героя)"""
         for bullet in pygame.sprite.spritecollide(self, bullets_group, True):
@@ -269,6 +285,7 @@ class MainHero(BaseHero):
             self.health -= bullet.get_damage()
             if self.health <= 0:
                 self.health = 0
+                sound_manager.play_game_over()
                 return
 
             self.got_hit = pygame.time.get_ticks()  # Время последнего удара
@@ -279,6 +296,8 @@ class MainHero(BaseHero):
             else:
                 self.x_vel = delta
             self.y_vel = -5
+
+            sound_manager.play_got_hit()
 
     def update(self):
         super().update()
@@ -358,6 +377,7 @@ class MainHero(BaseHero):
                 flag_anim = False
             if self.on_ground:
                 self.make_dust_particles()
+                sound_manager.play_move_on_ground()
 
         elif pygame.key.get_pressed()[pygame.K_LEFT]:
             self.x_vel = -self.speed
@@ -370,6 +390,7 @@ class MainHero(BaseHero):
                 flag_anim = False
             if self.on_ground:
                 self.make_dust_particles()
+                sound_manager.play_move_on_ground()
 
         if flag_anim:  # нет передвижения по оси x
             self.x_vel = 0
@@ -381,7 +402,7 @@ class MainHero(BaseHero):
                 self.jump = pygame.time.get_ticks()
                 # Флаг - отжата ли клавиша "вверх"
                 self.key_up_is_raised = False
-
+                sound_manager.play_jump()
             # Если герой не на земле, клавиша вверх отжата,
             # и прошло меньше 1500 мс после прыжка
             elif self.key_up_is_raised and self.jump and now - self.jump < 1500:
@@ -390,6 +411,7 @@ class MainHero(BaseHero):
                 self.jump = False
                 # Сбрасываем анимацию двойного прыжка
                 self.animations['double_jump'].stop()
+                sound_manager.play_jump()
         else:
             self.key_up_is_raised = True
         # Если нажата клавиша вниз, то сбивается весь прыжок
@@ -406,6 +428,7 @@ class MainHero(BaseHero):
                 self.double_jump = True
                 # Сбрасываем анимацию двойного прыжка
                 self.animations['double_jump'].stop()
+                sound_manager.play_jump()
 
         if flag_anim:  # все клавиши не нажаты
             # Когда клавиши не нажаты и герой на земле, то анимация stay
@@ -421,10 +444,12 @@ class MainHero(BaseHero):
     def attack(self):
         """Атака героя сюрикеном"""
         if self.number_shurikens:
-            Shuriken(self.rect.right
+            Shuriken(self.rect.right - 20
                      if self.direction == "right" else self.rect.left,
                      self.rect.top, self.direction).move()
             self.number_shurikens -= 1
+
+            sound_manager.play_shuriken()
 
     def defeat(self):
         """Поражение героя"""
@@ -452,7 +477,6 @@ class MainHero(BaseHero):
 
         # если герой исчезает, то уничтожаем спрайт
         if self.transparency <= 0:
-            pass
             self.kill()
 
     def make_dust_particles(self):
