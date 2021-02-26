@@ -326,6 +326,8 @@ class AngryPig(WalkingEnemy):
                     'Enemies/AngryPig/Run.png', 1, 12, anim_delay=100))
                 self.animations['hit'] = pyganim.PygAnimation(cut_sheet(
                     'Enemies/AngryPig/Hit2.png', 1, 5, anim_delay=100))
+                if self.x_vel > 0:
+                    self.flip()
                 self.animations['run'].play()
             self.got_hit = False
         return False

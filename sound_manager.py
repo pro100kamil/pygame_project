@@ -36,7 +36,24 @@ class SoundManager:
 
     music.load('music/background_tango_short.wav')
     music.play(-1)
-    music.set_volume(0.1)
+    music.set_volume(0.3)
+
+    @staticmethod
+    def start_sound():
+        """Включает звук в игре"""
+        music.set_volume(0.3)
+        for k, v in SoundManager.sounds.items():
+            if k in {'move_on_ground', 'fruit', 'hit', 'potion'}:
+                v.set_volume(0.2)
+            else:
+                v.set_volume(1)
+
+    @staticmethod
+    def remove_sound():
+        """Отключает звук в игре"""
+        music.set_volume(0)
+        for v in SoundManager.sounds.values():
+            v.set_volume(0)
 
     @staticmethod
     def play_shuriken():

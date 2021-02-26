@@ -21,4 +21,5 @@ potions_group = pygame.sprite.Group()
 chameleons = pygame.sprite.Group()
 spikes_group = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
+
 sound_manager = SoundManager()
