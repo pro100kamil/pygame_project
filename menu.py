@@ -359,9 +359,20 @@ def game(MAIN_HERO, level_num):
 
         all_sprites.update()
 
-        if player.health:
+        if player.get_health():
             # изменяем ракурс камеры
             camera.update(player)
+        elif not list(player_group):  # спрайт героя исчез
+
+            # после окончания игры удаляем спрайты
+            for sprite in all_sprites:
+                sprite.kill()
+            game_screen.blit(
+                pygame.transform.scale(load_image("gameover.png"),
+                                       (WIDTH, HEIGHT)),
+                (0, 0))
+            # running = False
+
         # обновляем положение всех спрайтов
         for sprite in all_sprites:
             if not issubclass(type(sprite), Enemy) and not isinstance(sprite,
