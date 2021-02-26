@@ -12,5 +12,26 @@
         "path": "data\\for menu\\Back1.png"
       }
     }
+  },
+  "#levels": {
+    "images": {
+      "normal_image": {
+        "path": "data\\for menu\\Levels.png"
+      }
+    }
+  },
+  "#next": {
+    "images": {
+      "normal_image": {
+        "path": "data\\for menu\\Next.png"
+      }
+    }
+  },
+  "#restart": {
+    "images": {
+      "normal_image": {
+        "path": "data\\for menu\\Restart.png"
+      }
+    }
   }
 }

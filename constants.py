@@ -10,6 +10,9 @@ GRAVITY = 12 / FPS
 screen = pygame.display.set_mode((WIDTH, HEIGHT + TILE_SIDE))
 game_screen = pygame.Surface(SIZE)
 
+MAIN_HERO = None
+NOW_LEVEL = None
+
 clock = pygame.time.Clock()
 # группы спрайтов
 all_sprites = pygame.sprite.Group()

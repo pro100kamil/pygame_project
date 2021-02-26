@@ -50,6 +50,8 @@ class MainHero(BaseHero):
 
         self.number_shurikens = 20  # кол-во оставшихся сюрикенов
 
+        self.win = False   # прошёл ли герой текущий уровень
+
         self.transparency = 255
         self.angle = 0
         self.last_speed = self.speed
@@ -104,6 +106,9 @@ class MainHero(BaseHero):
 
     def get_direction(self):
         return self.direction
+
+    def is_win(self):
+        return self.win
 
     def collide(self, x_vel, y_vel):
         """Обработка столкновений с платформами"""
@@ -169,7 +174,7 @@ class MainHero(BaseHero):
                     checkpoint.moving = True
                 if not list(enemies_group):
                     # уровень пройден
-                    print('уровень пройден')
+                    self.win = True
 
     def collide_with_enemies(self):
         """Обработка столкновений с врагами"""

@@ -28,7 +28,8 @@ def exit_warning(manager, msg='Вы уверены, что хотите выйт
 
 def menu_screen():
     """Открывает окно меню и возращает имя героя и номер выбранного уровня"""
-
+    global MAIN_HERO
+    pygame.display.set_icon(load_image('for menu/Ninja Frog.png'))
     sound = True  # вначале звук включён
     pygame.display.set_caption('Меню')
     hero_parameters = namedtuple('hero_parameters', 'damage speed health')
@@ -39,6 +40,7 @@ def menu_screen():
               'Mask Dude': hero_parameters(15, 6, 100)}
     list_heroes = list(heroes.keys())
     now = 0
+    MAIN_HERO = list_heroes[now]
     # координаты и размер изображения главного героя
     size_hero_image = 300, 300
     coord_hero_image = (WIDTH - size_hero_image[0]) // 2, 50
@@ -107,9 +109,7 @@ def menu_screen():
                     now = (now - 1) % len(list_heroes)
                 elif event.key == pygame.K_RETURN:
                     print('PLAY')
-                    num_level = level_selection_screen()
-                    if num_level is not None:
-                        game(list_heroes[now], num_level)
+                    level_selection_screen()
                     continue
                 elif event.key == pygame.K_ESCAPE:
                     exit_warning(manager)
@@ -129,9 +129,7 @@ def menu_screen():
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == play:
                         print('PLAY')
-                        num_level = level_selection_screen()
-                        if num_level is not None:
-                            game(list_heroes[now], num_level)
+                        level_selection_screen()
                     elif event.ui_element == volume:
                         sound = not sound
                         if sound:
@@ -155,8 +153,9 @@ def menu_screen():
     pygame.quit()
 
 
-def level_selection_screen() -> int or None:
+def level_selection_screen():
     """Открывает окно выбора уровня и возращает номер выбранного уровня"""
+    global NOW_LEVEL
     pygame.display.set_caption('Выберите уровень')
     kol_levels = 10
     images = []
@@ -190,8 +189,6 @@ def level_selection_screen() -> int or None:
         manager=manager
     )
 
-    manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
-
     running = True
     while running:
         time_delta = clock.tick(60) / 1000.0
@@ -204,7 +201,9 @@ def level_selection_screen() -> int or None:
                     for i, rect in enumerate(rects, start=1):
                         if pygame.Rect.collidepoint(rect, event.pos):
                             if os.path.isfile(f'maps/level{i}.txt'):
-                                return i
+                                NOW_LEVEL = i
+                                game()
+                                return
                             else:
                                 # окно с предупреждением
                                 pygame_gui.windows.UIMessageWindow(
@@ -241,6 +240,92 @@ def level_selection_screen() -> int or None:
 
         for i in range(len(images)):
             screen.blit(images[i], rects[i])
+
+        manager.draw_ui(screen)
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def level_complete_screen():
+    """Открывает окно после прохождения уровня"""
+    global NOW_LEVEL
+    manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
+
+    width = 31
+    height = 33
+    x = 10
+    y = 10
+    delta = 40
+    back = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect(x, y, width, height),
+        text='',
+        tool_tip_text='Нажмите, вернуться назад',
+        object_id='#back',
+        manager=manager
+    )
+    x += delta
+    levels = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect(x, y, width, height),
+        text='',
+        tool_tip_text='Нажмите, чтобы перейти к выбору уровня',
+        object_id='#levels',
+        manager=manager
+    )
+    x += delta
+    restart = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect(x, y, width, height),
+        text='',
+        tool_tip_text='Нажмите, чтобы пройти этот уровень ещё раз',
+        object_id='#restart',
+        manager=manager
+    )
+    x += delta
+    next_level = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect(x, y, width, height),
+        text='',
+        tool_tip_text='Нажмите, чтобы перейти к следующему уровню',
+        object_id='#next',
+        manager=manager
+    )
+
+    running = True
+    while running:
+        time_delta = clock.tick(60) / 1000.0
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.display.set_caption('Меню')
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.display.set_caption('Меню')
+                    running = False
+            elif event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == back:
+                        pygame.display.set_caption('Меню')
+                    elif event.ui_element == levels:
+                        level_selection_screen()
+                    elif event.ui_element == restart:
+                        game()
+                    elif event.ui_element == next_level:
+                        NOW_LEVEL += 1
+                        game()
+                    running = False
+            manager.process_events(event)
+
+        manager.update(time_delta)
+
+        screen.fill(pygame.Color('#E5D007'))
+
+        font = pygame.font.Font(None, 50)
+        text = font.render("Уровень пройден!", True, (0, 0, 0))
+        text_x = WIDTH // 2 - text.get_width() // 2
+        text_y = 150
+        text_w = text.get_width()
+        text_h = text.get_height()
+        screen.blit(text, (text_x, text_y))
+        pygame.draw.rect(screen, (0, 0, 0), (text_x - 10, text_y - 10,
+                                             text_w + 20, text_h + 20), 2)
 
         manager.draw_ui(screen)
         pygame.display.flip()
@@ -320,11 +405,14 @@ def load_level(filename, MAIN_HERO):
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
 
-def game(MAIN_HERO, level_num):
+def game():
+    with open('log.txt') as file:
+        # уровень, на котором остановился игрок (этот уровень ещё не пройден)
+        max_level = int(file.read())
+    if NOW_LEVEL > max_level:
+        level_selection_screen()
+        return
     pygame.display.set_caption('Игра')
-    # запуск без меню
-    # MAIN_HERO = 'Virtual Guy'
-    # level_num = 1
 
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
 
@@ -332,7 +420,7 @@ def game(MAIN_HERO, level_num):
     pause = False
     last_pause = 0
 
-    player, level_x, level_y = load_level(f'level{level_num}.txt', MAIN_HERO)
+    player, level_x, level_y = load_level(f'level{NOW_LEVEL}.txt', MAIN_HERO)
     # player, level_x, level_y = load_level(f'map.txt', MAIN_HERO)
 
     camera = Camera(level_x, level_y)
@@ -341,10 +429,14 @@ def game(MAIN_HERO, level_num):
         time_delta = clock.tick(60) / 1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pause = True
-                last_pause = pygame.time.get_ticks()
-                exit_warning(manager, 'Вы уверены, что хотите выйти? '
-                                      'Ваш прогресс не сохранится.')
+                # если герой погиб, то просто закрываем игровое окно
+                if not player.get_health():
+                    running = False
+                else:
+                    pause = True
+                    last_pause = pygame.time.get_ticks()
+                    exit_warning(manager, 'Вы уверены, что хотите выйти? '
+                                          'Ваш прогресс не сохранится.')
             elif event.type == pygame.KEYDOWN:
                 # через события, чтобы вылетал один сюрикен
                 if event.key == pygame.K_RETURN and not pause:
@@ -358,10 +450,14 @@ def game(MAIN_HERO, level_num):
                         player.add_paused_time(
                             pygame.time.get_ticks() - last_pause)
                 elif event.key == pygame.K_ESCAPE:
-                    pause = True
-                    last_pause = pygame.time.get_ticks()
-                    exit_warning(manager, 'Вы уверены, что хотите выйти? '
-                                          'Ваш прогресс не сохранится.')
+                    # если герой погиб, то просто закрываем игровое окно
+                    if not player.get_health():
+                        running = False
+                    else:
+                        pause = True
+                        last_pause = pygame.time.get_ticks()
+                        exit_warning(manager, 'Вы уверены, что хотите выйти? '
+                                              'Ваш прогресс не сохранится.')
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     pygame.display.set_caption('Меню')
@@ -381,6 +477,16 @@ def game(MAIN_HERO, level_num):
         #     pygame.display.flip()
         #     clock.tick(FPS)
         #     continue
+
+        if player.is_win():
+            level_complete_screen()
+            with open('log.txt') as file:
+                max_level = int(file.read())
+            with open('log.txt', 'w') as file:
+                print(NOW_LEVEL, max_level)
+                if NOW_LEVEL == max_level:
+                    file.write(str(NOW_LEVEL + 1))
+            return
 
         game_screen.fill(pygame.Color("light blue"))
         if not pause:

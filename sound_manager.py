@@ -117,7 +117,7 @@ class SoundManager:
 
     @staticmethod
     def play_game_over():
-        mixer.music.stop()
+        # mixer.music.stop()
         SoundManager.sounds['game_over'].play()
 
     def update(self):
