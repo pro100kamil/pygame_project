@@ -1,16 +1,10 @@
-import os
 from collections import namedtuple
-import pygame
+
 import pygame_gui
-from functions import *
-from constants import *
-from typing import Tuple
-from constants import *
-from functions import *
+
 from enemy import *
-from some_classes import *
-from weapon import Shuriken
 from main_character import MainHero
+from some_classes import *
 
 
 def terminate():

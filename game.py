@@ -1,9 +1,6 @@
-from constants import *
-from functions import *
 from enemy import *
-from some_classes import *
-from weapon import Shuriken
 from main_character import MainHero
+from some_classes import *
 
 
 def load_level(filename, MAIN_HERO):

@@ -1,7 +1,5 @@
-import pygame
 import pyganim
 
-from constants import *
 from functions import *
 
 

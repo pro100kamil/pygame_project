@@ -1,10 +1,7 @@
-import os
 from random import choice
 
-import pygame
 import pyganim
 
-from constants import *
 from functions import *
 
 

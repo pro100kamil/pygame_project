@@ -1,12 +1,6 @@
-import os
-from random import choice
 from collections import namedtuple
 from math import ceil
-import pygame
-import pyganim
 
-from constants import *
-from functions import *
 from enemy import *
 from some_classes import *
 from weapon import Shuriken
