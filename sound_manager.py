@@ -36,9 +36,13 @@ class SoundManager:
     sounds['hit'].set_volume(0.2)
     sounds['potion'].set_volume(0.2)
 
+    # есть ли в игре сейчас звук
+    sound = True  # вначале звук включён
+
     @staticmethod
     def start_sound():
         """Включает звук в игре"""
+        music.set_volume(0)
         SoundManager.play_menu_music()
         for k, v in SoundManager.sounds.items():
             if k in {'move_on_ground', 'fruit', 'hit', 'potion'}:
@@ -123,25 +127,28 @@ class SoundManager:
 
     @staticmethod
     def play_menu_music():
-        for sound in SoundManager.sounds.values():
-            sound: Sound
-            sound.stop()
-        mixer.music.fadeout(500)
-        mixer.music.unload()
-        mixer.music.load('music/background.mp3')
-        mixer.music.set_volume(1)
-        mixer.music.play(-1)
+        if SoundManager.sound:
+            for sound in SoundManager.sounds.values():
+                sound: Sound
+                sound.stop()
+            mixer.music.fadeout(500)
+            mixer.music.unload()
+            mixer.music.load('music/background.mp3')
+            mixer.music.set_volume(1)
+            mixer.music.play(-1)
 
     @staticmethod
     def play_game_music():
-        for sound in SoundManager.sounds.values():
-            sound: Sound
-            sound.stop()
-        mixer.music.fadeout(500)
-        mixer.music.unload()
-        mixer.music.load('music/background_tango_short.wav')
-        music.set_volume(0.3)
-        mixer.music.play(-1)
+        print(SoundManager.sound)
+        if SoundManager.sound:
+            for sound in SoundManager.sounds.values():
+                sound: Sound
+                sound.stop()
+            mixer.music.fadeout(500)
+            mixer.music.unload()
+            mixer.music.load('music/background_tango_short.wav')
+            music.set_volume(0.3)
+            mixer.music.play(-1)
 
     @staticmethod
     def play_victory():

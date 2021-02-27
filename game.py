@@ -34,7 +34,6 @@ def menu_screen():
 
     dialog = None  # текущее открытое диалговое окно
 
-    sound = True  # вначале звук включён
     pygame.display.set_caption('Меню')
     hero_parameters = namedtuple('hero_parameters', 'damage speed health')
     # name: (damage, speed, health)
@@ -137,8 +136,8 @@ def menu_screen():
                         print('PLAY')
                         level_selection_screen()
                     elif event.ui_element == volume:
-                        sound = not sound
-                        if sound:
+                        SoundManager.sound = not SoundManager.sound
+                        if SoundManager.sound:
                             print('Звук включён')
                             sound_manager.start_sound()
                         else:
