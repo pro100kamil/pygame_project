@@ -165,22 +165,21 @@ def level_selection_screen():
     """Открывает окно выбора уровня и возращает номер выбранного уровня"""
     global NOW_LEVEL
     pygame.display.set_caption('Выберите уровень')
-    kol_levels = 10
     images = []
     size = 80, 80
-    for i in range(1, kol_levels + 1):
+    for i in range(1, KOL_LEVELS + 1):
         images.append(pygame.transform.scale(
             load_image(f"for menu/Levels/{str(i).rjust(2, '0')}.png"), size))
     rects = []  # прямоугольники, в которых лежат изображения
     delta = 50
     y = (HEIGHT - size[1] * 2 - delta) // 2
-    x0 = (WIDTH - size[0] * kol_levels // 2) // 2
-    for i in range(kol_levels // 2):
+    x0 = (WIDTH - size[0] * KOL_LEVELS // 2) // 2
+    for i in range(KOL_LEVELS // 2):
         x = x0 + size[0] * i
         rects.append(pygame.Rect(x, y, *size))
     y += size[1] + delta
-    for i in range(kol_levels // 2, kol_levels):
-        x = x0 + size[0] * (i - kol_levels // 2)
+    for i in range(KOL_LEVELS // 2, KOL_LEVELS):
+        x = x0 + size[0] * (i - KOL_LEVELS // 2)
         rects.append(pygame.Rect(x, y, *size))
 
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
@@ -290,7 +289,7 @@ def level_end_screen(win=True):
         object_id='#restart',
         manager=manager
     )
-    if win:
+    if win and NOW_LEVEL != KOL_LEVELS:
         next_level = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect(x + 3 * delta, y, width, height),
             text='',
@@ -332,8 +331,10 @@ def level_end_screen(win=True):
 
         screen.fill(pygame.Color('#E5D007'))
 
-        font = pygame.font.SysFont("arial", 80)
-        text = font.render("Уровень пройден!" if win else "Вы проиграли",
+        font = pygame.font.SysFont("arial", 70)
+        text = font.render(("Уровень пройден!" if NOW_LEVEL != KOL_LEVELS
+                           else "Поздравляем! Вы прошли игру!")
+                           if win else "Вы проиграли",
                            True, (0, 0, 0))
         text_x = WIDTH // 2 - text.get_width() // 2
         text_y = 150

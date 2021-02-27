@@ -13,6 +13,7 @@ game_screen = pygame.Surface(SIZE)
 
 MAIN_HERO = None
 NOW_LEVEL = None
+KOL_LEVELS = 8  # количество уровней
 
 clock = pygame.time.Clock()
 # группы спрайтов
