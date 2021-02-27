@@ -15,14 +15,14 @@ def terminate():
 
 def exit_warning(manager, msg='Вы уверены, что хотите выйти?'):
     """Открывает окно с предупреждением о выходе"""
-    pygame_gui.windows.UIConfirmationDialog(
+    return pygame_gui.windows.UIConfirmationDialog(
         rect=pygame.Rect((WIDTH // 2 - 150, HEIGHT // 2 - 100),
                          (300, 200)),
         manager=manager,
         window_title='Подтверждение',
         action_long_desc=msg,
         action_short_name='OK',
-        blocking=False
+        blocking=True
     )
 
 
@@ -32,7 +32,8 @@ def menu_screen():
 
     sound_manager.play_menu_music()
 
-    pygame.display.set_icon(load_image('for menu/Ninja Frog.png'))
+    dialog = None  # текущее открытое диалговое окно
+
     sound = True  # вначале звук включён
     pygame.display.set_caption('Меню')
     hero_parameters = namedtuple('hero_parameters', 'damage speed health')
@@ -104,7 +105,8 @@ def menu_screen():
         time_delta = 1000 / FPS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                exit_warning(manager)
+                if dialog is None:
+                    dialog = exit_warning(manager)
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     now = (now + 1) % len(list_heroes)
@@ -115,21 +117,22 @@ def menu_screen():
                     level_selection_screen()
                     continue
                 elif event.key == pygame.K_ESCAPE:
-                    exit_warning(manager)
-                name = list_heroes[now]
+                    if dialog is None:
+                        dialog = exit_warning(manager)
+                MAIN_HERO = list_heroes[now]
                 image = pygame.transform.scale(
-                    load_image(f"for menu/{name}.png"), size_hero_image)
-                name_label.set_text(name)
+                    load_image(f"for menu/{MAIN_HERO}.png"), size_hero_image)
+                name_label.set_text(MAIN_HERO)
                 damage_label.set_text(
-                    f'Урон: {heroes[name].damage}')
+                    f'Урон: {heroes[MAIN_HERO].damage}')
                 speed_label.set_text(
-                    f'Скорость: {heroes[name].speed}')
+                    f'Скорость: {heroes[MAIN_HERO].speed}')
                 health_label.set_text(
-                    f'Жизни: {heroes[name].health}')
+                    f'Жизни: {heroes[MAIN_HERO].health}')
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     terminate()
-                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                elif event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == play:
                         print('PLAY')
                         level_selection_screen()
@@ -141,6 +144,9 @@ def menu_screen():
                         else:
                             print('Звук выключен')
                             sound_manager.remove_sound()
+                # крестик или cancel в диалоговом окне
+                elif event.user_type == pygame_gui.UI_WINDOW_CLOSE:
+                    dialog = None
             manager.process_events(event)
 
         manager.update(time_delta)
@@ -204,18 +210,22 @@ def level_selection_screen():
                     for i, rect in enumerate(rects, start=1):
                         if pygame.Rect.collidepoint(rect, event.pos):
                             if os.path.isfile(f'maps/level{i}.txt'):
-                                NOW_LEVEL = i
-                                game()
-                                return
-                            else:
-                                # окно с предупреждением
-                                pygame_gui.windows.UIMessageWindow(
-                                    rect=pygame.Rect(
-                                        WIDTH // 2 - 150, HEIGHT // 2 + 150,
-                                        300, 300),
-                                    html_message='Такого уровня пока нет',
-                                    manager=manager
-                                )
+                                with open('level.txt') as file:
+                                    max_level = int(file.read())
+                                if i <= max_level:
+                                    NOW_LEVEL = i
+                                    game()
+                                    return
+                                else:
+                                    # окно с предупреждением
+                                    pygame_gui.windows.UIMessageWindow(
+                                        rect=pygame.Rect(
+                                            WIDTH // 2 - 150,
+                                            HEIGHT // 2 + 150, 300, 300),
+                                        html_message='Этот уровень вам '
+                                                     'недоступен',
+                                        manager=manager
+                                    )
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pygame.display.set_caption('Меню')
@@ -249,8 +259,8 @@ def level_selection_screen():
         clock.tick(FPS)
 
 
-def level_complete_screen(win=True):
-    """Открывает окно после прохождения/проигрыша уровня"""
+def level_end_screen(win=True):
+    """Открывает окно после прохождения/проигрыша"""
     global NOW_LEVEL
 
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
@@ -339,7 +349,7 @@ def level_complete_screen(win=True):
         clock.tick(FPS)
 
 
-def load_level(filename, MAIN_HERO):
+def load_level(filename):
     """Загрузка уровня"""
     filename = os.path.join('maps', filename)
     # если файл не существует, то выходим
@@ -363,7 +373,7 @@ def load_level(filename, MAIN_HERO):
                     x * TILE_SIDE - (TILE_SIDE - Checkpoint.width),
                     y * TILE_SIDE + (TILE_SIDE - Checkpoint.height),
                     'End')
-            elif elem == '`':
+            elif elem == '~':
                 Saw(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '.':
                 Spikes(x * TILE_SIDE, y * TILE_SIDE)
@@ -377,7 +387,7 @@ def load_level(filename, MAIN_HERO):
             elif elem == '?':
                 Potion(x * TILE_SIDE + (TILE_SIDE - Potion.width) / 2,
                        y * TILE_SIDE + (TILE_SIDE - Potion.height) / 2)
-            elif elem == '2':
+            elif elem == '+':
                 Backpack(x * TILE_SIDE + (TILE_SIDE - Backpack.width) / 2,
                          y * TILE_SIDE + (TILE_SIDE - Backpack.height) / 2)
             elif elem == 'b':
@@ -398,7 +408,7 @@ def load_level(filename, MAIN_HERO):
                     x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
                     y * TILE_SIDE + (TILE_SIDE - Plant.height), "right"
                 )
-            elif elem == 'P':
+            elif elem == 'q':
                 Plant(
                     x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
                     y * TILE_SIDE + (TILE_SIDE - Plant.height), "left"
@@ -412,7 +422,7 @@ def load_level(filename, MAIN_HERO):
 
 
 def game():
-    with open('log.txt') as file:
+    with open('level.txt') as file:
         # уровень, на котором остановился игрок (этот уровень ещё не пройден)
         max_level = int(file.read())
     if NOW_LEVEL > max_level:
@@ -429,7 +439,9 @@ def game():
     pause = False
     last_pause = 0
 
-    player, level_x, level_y = load_level(f'level{NOW_LEVEL}.txt', MAIN_HERO)
+    dialog = None  # текущее открытое диалговое окно
+
+    player, level_x, level_y = load_level(f'level{NOW_LEVEL}.txt')
     # player, level_x, level_y = load_level(f'map.txt', MAIN_HERO)
 
     camera = Camera(level_x, level_y)
@@ -444,8 +456,11 @@ def game():
                 else:
                     pause = True
                     last_pause = pygame.time.get_ticks()
-                    exit_warning(manager, 'Вы уверены, что хотите выйти? '
-                                          'Ваш прогресс не сохранится.')
+                    if dialog is None:
+                        dialog = exit_warning(manager,
+                                              'Вы уверены, что хотите выйти? '
+                                              'Ваш прогресс на текущем уровне '
+                                              'не сохранится.')
             elif event.type == pygame.KEYDOWN:
                 # через события, чтобы вылетал один сюрикен
                 if list(player_group) and event.key == pygame.K_RETURN and not pause:
@@ -467,14 +482,18 @@ def game():
                     else:
                         pause = True
                         last_pause = pygame.time.get_ticks()
-                        exit_warning(manager, 'Вы уверены, что хотите выйти? '
-                                              'Ваш прогресс не сохранится.')
+                        # чтобы не открывалось несколько диалогово
+                        if dialog is None:
+                            dialog = exit_warning(manager, 'Вы уверены, что хотите выйти? '
+                                                  'Ваш прогресс на текущем уровне '
+                                                  'не сохранится.')
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     running = False
                 # крестик или cancel в диалоговом окне
                 if event.user_type == pygame_gui.UI_WINDOW_CLOSE:
                     pause = False
+                    dialog = None
                     # Добавление упущенного во время паузы времени
                     player.add_paused_time(
                         pygame.time.get_ticks() - last_pause)
@@ -487,10 +506,10 @@ def game():
             for sprite in all_sprites:
                 sprite.kill()
             SoundManager.play_victory()
-            with open('log.txt') as file:
+            with open('level.txt') as file:
                 max_level = int(file.read())
             if NOW_LEVEL == max_level:
-                with open('log.txt', 'w') as file:
+                with open('level.txt', 'w') as file:
                     file.write(str(NOW_LEVEL + 1))
             level_complete_screen()
             return

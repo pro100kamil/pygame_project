@@ -8,6 +8,7 @@ FPS = 30
 GRAVITY = 12 / FPS
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT + TILE_SIDE))
+pygame.display.set_icon(pygame.image.load('data/for menu/Ninja Frog.png'))
 game_screen = pygame.Surface(SIZE)
 
 MAIN_HERO = None

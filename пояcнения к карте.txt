@@ -1,9 +1,21 @@
 @ - главный герой
-* - фрукт
+
+1 - начало уровня
+9 - конец уровня
 . - шипы
+~ - пила
+- - платформы
+
 b - Bunny
-w - WalkingEnemy
+c - Chicken
+m - Mushroom
+s - Slime
+o - AngryPig
 h - Chameleon
 r - Rino
 p - Plant, смотрящий вправо
-P - Plant, смотрящий влево
+q - Plant, смотрящий влево
+
+* - фрукт
+? - зелье
++ - рюкзак
