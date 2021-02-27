@@ -102,9 +102,9 @@ class Enemy(pygame.sprite.Sprite):
 class Bunny(Enemy):
     width, height = 34, 44
 
-    def __init__(self, x, y, jump):
+    def __init__(self, x, y):
         super().__init__(x, y, Bunny.width, Bunny.height)
-        self.jump, self.x_vel, self.y_vel = jump, 0, 0
+        self.jump, self.x_vel, self.y_vel = 10, 0, 0
         self.last_fall = pygame.time.get_ticks()
         self.just_fell = True
         self.health = 45  # количество жизней
@@ -245,10 +245,10 @@ class Chicken(WalkingEnemy):
 class Mushroom(WalkingEnemy):
     width, height = 32, 32
 
-    def __init__(self, x, y, speed, max_length):
+    def __init__(self, x, y):
         super().__init__(x, y, Mushroom.width, Mushroom.height)
-        self.x_vel, self.y_vel = speed, 0
-        self.max_length = max_length
+        self.x_vel, self.y_vel = -3.5, 0
+        self.max_length = 100
         self.health = 10  # количество жизней
         self.damage = 15  # урон, который наносит враг при атаке
 
@@ -268,10 +268,10 @@ class Mushroom(WalkingEnemy):
 class Slime(WalkingEnemy):
     width, height = 44, 30
 
-    def __init__(self, x, y, speed, max_length):
+    def __init__(self, x, y):
         super().__init__(x, y, Slime.width, Slime.height)
-        self.x_vel, self.y_vel = speed, 0
-        self.max_length = max_length
+        self.x_vel, self.y_vel = -1, 0
+        self.max_length = 100
         self.health = 55  # количество жизней
         self.damage = 15  # урон, который наносит враг при атаке
 
@@ -621,4 +621,3 @@ class Plant(Enemy):
                 # Время начинает отсчитываться именно тогда, когда атака закончилась
                 self.last_attack = pygame.time.get_ticks()
         self.mask = pygame.mask.from_surface(self.image)
-

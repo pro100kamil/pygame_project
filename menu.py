@@ -249,8 +249,8 @@ def level_selection_screen():
         clock.tick(FPS)
 
 
-def level_complete_screen():
-    """Открывает окно после прохождения уровня"""
+def level_complete_screen(win=True):
+    """Открывает окно после прохождения/проигрыша уровня"""
     global NOW_LEVEL
 
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
@@ -267,30 +267,30 @@ def level_complete_screen():
         object_id='#back',
         manager=manager
     )
-    x += delta
     levels = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(x, y, width, height),
+        relative_rect=pygame.Rect(x + delta, y, width, height),
         text='',
         tool_tip_text='Нажмите, чтобы перейти к выбору уровня',
         object_id='#levels',
         manager=manager
     )
-    x += delta
     restart = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(x, y, width, height),
+        relative_rect=pygame.Rect(x + 2 * delta, y, width, height),
         text='',
         tool_tip_text='Нажмите, чтобы пройти этот уровень ещё раз',
         object_id='#restart',
         manager=manager
     )
-    x += delta
-    next_level = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect(x, y, width, height),
-        text='',
-        tool_tip_text='Нажмите, чтобы перейти к следующему уровню',
-        object_id='#next',
-        manager=manager
-    )
+    if win:
+        next_level = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect(x, y, width, height),
+            text='',
+            tool_tip_text='Нажмите, чтобы перейти к следующему уровню',
+            object_id='#next',
+            manager=manager
+        )
+    else:
+        next_level = None
 
     running = True
     while running:
@@ -324,7 +324,8 @@ def level_complete_screen():
         screen.fill(pygame.Color('#E5D007'))
 
         font = pygame.font.Font(None, 50)
-        text = font.render("Уровень пройден!", True, (0, 0, 0))
+        text = font.render("Уровень пройден!" if win else "Вы проиграли",
+                           True, (0, 0, 0))
         text_x = WIDTH // 2 - text.get_width() // 2
         text_y = 150
         text_w = text.get_width()
@@ -364,7 +365,6 @@ def load_level(filename, MAIN_HERO):
                     'End')
             elif elem == '`':
                 Saw(x * TILE_SIDE, y * TILE_SIDE)
-                # Spikes(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == '.':
                 Spikes(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'c':
@@ -381,11 +381,11 @@ def load_level(filename, MAIN_HERO):
                 Backpack(x * TILE_SIDE + (TILE_SIDE - Backpack.width) / 2,
                          y * TILE_SIDE + (TILE_SIDE - Backpack.height) / 2)
             elif elem == 'b':
-                Bunny(x * TILE_SIDE, y * TILE_SIDE, 10)
+                Bunny(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'm':
-                Mushroom(x * TILE_SIDE, y * TILE_SIDE, -3.5, 100)
+                Mushroom(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 's':
-                Slime(x * TILE_SIDE, y * TILE_SIDE, -1, 100)
+                Slime(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'h':
                 Chameleon(x * TILE_SIDE, y * TILE_SIDE)
             elif elem == 'r':
@@ -448,7 +448,7 @@ def game():
                                           'Ваш прогресс не сохранится.')
             elif event.type == pygame.KEYDOWN:
                 # через события, чтобы вылетал один сюрикен
-                if not list(player_group) and event.key == pygame.K_RETURN and not pause:
+                if list(player_group) and event.key == pygame.K_RETURN and not pause:
                     player.attack()
                 elif event.key == pygame.K_p:
                     pause = not pause
@@ -482,21 +482,17 @@ def game():
 
         manager.update(time_delta)
 
-        # if pause:
-        #     manager.draw_ui(screen)
-        #     pygame.display.flip()
-        #     clock.tick(FPS)
-        #     continue
-
         if player.is_win():
+            # после окончания игры удаляем спрайты
+            for sprite in all_sprites:
+                sprite.kill()
             SoundManager.play_victory()
-            level_complete_screen()
             with open('log.txt') as file:
                 max_level = int(file.read())
-            with open('log.txt', 'w') as file:
-                print(NOW_LEVEL, max_level)
-                if NOW_LEVEL == max_level:
+            if NOW_LEVEL == max_level:
+                with open('log.txt', 'w') as file:
                     file.write(str(NOW_LEVEL + 1))
+            level_complete_screen()
             return
 
         game_screen.fill(pygame.Color("light blue"))
@@ -513,11 +509,8 @@ def game():
                 # после окончания игры удаляем спрайты
                 for sprite in all_sprites:
                     sprite.kill()
-                game_screen.blit(
-                    pygame.transform.scale(load_image("gameover.png"),
-                                           (WIDTH, HEIGHT)),
-                    (0, 0))
-                # running = False
+                level_complete_screen(win=False)
+                return
 
         # обновляем положение всех спрайтов
         for sprite in all_sprites:
@@ -538,11 +531,9 @@ def game():
         manager.draw_ui(screen)
         pygame.display.flip()
         clock.tick(FPS)
-
     # после окончания игры удаляем спрайты
     for sprite in all_sprites:
         sprite.kill()
-
     pygame.display.set_caption('Меню')
 
     sound_manager.play_menu_music()
