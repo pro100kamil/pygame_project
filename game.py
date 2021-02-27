@@ -333,7 +333,7 @@ def level_end_screen(win=True):
 
         screen.fill(pygame.Color('#E5D007'))
 
-        font = pygame.font.Font(None, 50)
+        font = pygame.font.SysFont("arial", 80)
         text = font.render("Уровень пройден!" if win else "Вы проиграли",
                            True, (0, 0, 0))
         text_x = WIDTH // 2 - text.get_width() // 2
@@ -356,67 +356,38 @@ def load_level(filename):
     if not os.path.isfile(filename):
         raise SystemExit(f"Файл с картой '{filename}' не найден")
 
+    notations = {'@': MainHero,
+                 '1': Checkpoint, '9': Checkpoint,
+                 '.': Spikes, '~': Saw, '-': Platform,
+                 'b': Bunny, 'c': Chicken, 'm': Mushroom, 's': Slime,
+                 'o': AngryPig, 'h': Chameleon, 'r': Rino, 'p': Plant,
+                 'q': Plant,
+                 '*': Fruit, '?': Potion, '+': Backpack
+                 }
+
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
     new_player, x, y = None, None, None
     for y, row in enumerate(level_map):
         for x, elem in enumerate(row):
-            if elem == '-':
-                Platform(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '1':
-                Checkpoint(
-                    x * TILE_SIDE - (TILE_SIDE - Checkpoint.width),
-                    y * TILE_SIDE + (TILE_SIDE - Checkpoint.height),
-                    'Start')
-            elif elem == '9':
-                Checkpoint(
-                    x * TILE_SIDE - (TILE_SIDE - Checkpoint.width),
-                    y * TILE_SIDE + (TILE_SIDE - Checkpoint.height),
-                    'End')
-            elif elem == '~':
-                Saw(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '.':
-                Spikes(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'c':
-                Chicken(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'o':
-                AngryPig(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == '*':
-                Fruit(x * TILE_SIDE + (TILE_SIDE - Fruit.width) / 2,
-                      y * TILE_SIDE + (TILE_SIDE - Fruit.height) / 2)
-            elif elem == '?':
-                Potion(x * TILE_SIDE + (TILE_SIDE - Potion.width) / 2,
-                       y * TILE_SIDE + (TILE_SIDE - Potion.height) / 2)
-            elif elem == '+':
-                Backpack(x * TILE_SIDE + (TILE_SIDE - Backpack.width) / 2,
-                         y * TILE_SIDE + (TILE_SIDE - Backpack.height) / 2)
-            elif elem == 'b':
-                Bunny(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'm':
-                Mushroom(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 's':
-                Slime(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'h':
-                Chameleon(x * TILE_SIDE, y * TILE_SIDE)
-            elif elem == 'r':
-                Rino(
-                    x * TILE_SIDE - (TILE_SIDE - Rino.width),
-                    y * TILE_SIDE + (TILE_SIDE - Rino.height)
-                )
-            elif elem == 'p':
-                Plant(
-                    x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
-                    y * TILE_SIDE + (TILE_SIDE - Plant.height), "right"
-                )
-            elif elem == 'q':
-                Plant(
-                    x * TILE_SIDE - (TILE_SIDE - Plant.width) + 20,
-                    y * TILE_SIDE + (TILE_SIDE - Plant.height), "left"
-                )
-            elif elem == '@':
-                new_player = MainHero(
-                    x * TILE_SIDE - (TILE_SIDE - MainHero.width),
-                    y * TILE_SIDE + (TILE_SIDE - MainHero.height), MAIN_HERO)
+            if elem in notations:
+                args = []
+                if elem == '@':
+                    args.append(MAIN_HERO)
+                elif elem == 'q':
+                    args.append('left')
+                elif elem == 'p':
+                    args.append('right')
+                elif elem == '1':
+                    args.append('Start')
+                elif elem == '9':
+                    args.append('End')
+                w = getattr(notations[elem], "width", TILE_SIDE)
+                h = getattr(notations[elem], "height", TILE_SIDE)
+                tmp = notations[elem](x * TILE_SIDE - (TILE_SIDE - w),
+                                      y * TILE_SIDE + (TILE_SIDE - h), *args)
+                if elem == '@':
+                    new_player = tmp
 
     return new_player, (x + 1) * TILE_SIDE, (y + 1) * TILE_SIDE
 
@@ -463,7 +434,8 @@ def game():
                                               'не сохранится.')
             elif event.type == pygame.KEYDOWN:
                 # через события, чтобы вылетал один сюрикен
-                if list(player_group) and event.key == pygame.K_RETURN and not pause:
+                if list(
+                        player_group) and event.key == pygame.K_RETURN and not pause:
                     player.attack()
                 elif event.key == pygame.K_p:
                     pause = not pause
@@ -484,7 +456,8 @@ def game():
                         last_pause = pygame.time.get_ticks()
                         # чтобы не открывалось несколько диалогово
                         if dialog is None:
-                            dialog = exit_warning(manager, 'Вы уверены, что хотите выйти? '
+                            dialog = exit_warning(manager,
+                                                  'Вы уверены, что хотите выйти? '
                                                   'Ваш прогресс на текущем уровне '
                                                   'не сохранится.')
             elif event.type == pygame.USEREVENT:
@@ -528,7 +501,7 @@ def game():
                 # после окончания игры удаляем спрайты
                 for sprite in all_sprites:
                     sprite.kill()
-                level_complete_screen(win=False)
+                level_end_screen(win=False)
                 return
 
         # обновляем положение всех спрайтов
@@ -556,7 +529,3 @@ def game():
     pygame.display.set_caption('Меню')
 
     sound_manager.play_menu_music()
-
-
-if __name__ == '__main__':
-    menu_screen()

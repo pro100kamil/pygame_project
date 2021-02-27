@@ -103,7 +103,7 @@ class Bunny(Enemy):
     width, height = 34, 44
 
     def __init__(self, x, y):
-        super().__init__(x, y, Bunny.width, Bunny.height)
+        super().__init__(x + 20, y, Bunny.width, Bunny.height)
         self.jump, self.x_vel, self.y_vel = 10, 0, 0
         self.last_fall = pygame.time.get_ticks()
         self.just_fell = True
@@ -551,7 +551,7 @@ class Plant(Enemy):
     width, height = 44, 42
 
     def __init__(self, x, y, direction):
-        super().__init__(x, y, Plant.width, Plant.height)
+        super().__init__(x + 20, y, Plant.width, Plant.height)
         self.x_vel, self.y_vel = 0, 0
         self.prev_x_vel = 0
         self.direction = direction
