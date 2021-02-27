@@ -5,6 +5,7 @@ from functions import *
 
 class Shuriken(pygame.sprite.Sprite):
     """Сюрикен"""
+
     width, height = 25, 25
 
     def __init__(self, x, y, direction, range_flight=200):
@@ -30,6 +31,8 @@ class Shuriken(pygame.sprite.Sprite):
         self.damage = 10
 
     def move(self):
+        """Движение сюрикена"""
+
         if self.direction == "right":
             self.rect.x += self.delta
         else:
@@ -38,11 +41,15 @@ class Shuriken(pygame.sprite.Sprite):
         self.move_anim.blit(self.image, (0, 0))
 
     def update(self):
+        # Попадание сюрикена во врага
         for enemy in pygame.sprite.spritecollide(self, enemies_group, False):
-            enemy.get_hit(self.damage)
+            enemy: Enemy
+            enemy.get_hit(self.damage)  # Получение врагом урона
 
-            sound_manager.play_hit()
-            self.kill()
+            sound_manager.play_hit()  # Проигрывание музыки удара врага
+            self.kill()  # Спрайт удаляется
+
+        # Если не превышена дальность полёта и нет столкновения с препятствием, сюрикен летит
         if self.flown + self.delta <= self.range_flight and \
                 not pygame.sprite.spritecollideany(self, platforms) and \
                 not pygame.sprite.spritecollideany(self, spikes_group):
@@ -54,6 +61,7 @@ class Shuriken(pygame.sprite.Sprite):
 
 class Bullet(pygame.sprite.Sprite):
     """Пуля растения"""
+
     width, height = 22, 22
 
     def __init__(self, x, y, direction, range_flight=300):
@@ -86,6 +94,8 @@ class Bullet(pygame.sprite.Sprite):
         return self.direction
 
     def move(self):
+        """Перемещение пули"""
+
         if self.direction == "right":
             self.rect.x += self.delta
         else:
@@ -101,3 +111,4 @@ class Bullet(pygame.sprite.Sprite):
         else:  # полёт закончен
             self.flown = 0
             self.kill()
+        # Попадание пули растения прописано в классе главного героя

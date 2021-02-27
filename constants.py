@@ -1,8 +1,7 @@
 import pygame
-import pygame_gui
 from sound_manager import SoundManager
 
-TILE_SIDE = 50
+TILE_SIDE = 50  # размер одной клетки
 SIZE = WIDTH, HEIGHT = 1000, 700  # размер игрового окна
 FPS = 30
 GRAVITY = 12 / FPS
@@ -28,4 +27,4 @@ chameleons = pygame.sprite.Group()
 spikes_group = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 
-sound_manager = SoundManager()
+sound_manager = SoundManager()  # звуковой класс

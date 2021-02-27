@@ -60,9 +60,9 @@ class Saw(pygame.sprite.Sprite):
         # урон, который получит персонаж, если ударится о шипы
         self.damage = 30
 
-        self.speed = 5
+        self.speed = 5  # Скорость
 
-        self.x_vel, self.y_vel = -self.speed, 0
+        self.x_vel, self.y_vel = -self.speed, 0  # Вектор скорости
 
     def update(self):
         self.image.fill('black')
@@ -71,6 +71,7 @@ class Saw(pygame.sprite.Sprite):
         self.rect.x += self.x_vel
         self.rect.y += self.y_vel
 
+        # Пила прицепляется к платформе и вертится вокруг неё
         check_on_ground = pygame.sprite.spritecollideany(self, platforms)
         if check_on_ground is None:
             self.rect.x -= self.x_vel
@@ -109,7 +110,7 @@ class Fruit(pygame.sprite.Sprite):
 
         self.rect = pygame.Rect(x + 20, y, Fruit.width, Fruit.height)
         self.image = pygame.Surface((Fruit.width, Fruit.height))
-        self.collected = False
+        self.collected = False  # флаг, собран ли фрукт
 
         # каждый раз случайный фрукт
         self.anim_normal = pyganim.PygAnimation(cut_sheet(
@@ -137,12 +138,14 @@ class Fruit(pygame.sprite.Sprite):
             self.anim_collected.blit(self.image, (0, 0))
 
     def collect(self):
-        """Фрукт собран"""
+        """Сбор фрукта"""
 
         self.collected = True
         self.anim_collected.play()
 
     def is_collected(self):
+        """Проверка, собран ли"""
+
         return self.collected
 
     def get_health(self):
@@ -159,7 +162,7 @@ class Backpack(pygame.sprite.Sprite):
 
         self.rect = pygame.Rect(x + 20, y, Backpack.width, Backpack.height)
         self.image = pygame.Surface((Backpack.width, Backpack.height))
-        self.collected = False
+        self.collected = False  # Флаг, собран ли сюрикен
 
         self.anim_normal = pyganim.PygAnimation(
             cut_image(pygame.transform.scale(load_image('backpack.png', -1),
@@ -194,6 +197,8 @@ class Backpack(pygame.sprite.Sprite):
             self.anim_collected.blit(self.image, (0, 0))
 
     def is_collected(self):
+        """Проверка, собран ли"""
+
         return self.collected
 
     def get_kol(self):
@@ -201,18 +206,24 @@ class Backpack(pygame.sprite.Sprite):
 
 
 class Camera:
+    """Камера игрового процесса"""
+
     def __init__(self, width, height):
         self.view = pygame.Rect(0, 0, width, height)
 
     def apply(self, obj):
         """Сдвинуть объект obj на смещение камеры"""
+
         return obj.rect.move(self.view.topleft)
 
     def update(self, target):
         """Позиционировать камеру на объекте target"""
+
         self.view = self.set_camera(target)
 
     def set_camera(self, target):
+        """Генерация прямоугольника зоны видимости игры"""
+
         left, top, _, _ = target.rect
         _, _, width, height = self.view
 
@@ -225,9 +236,12 @@ class Camera:
 
 
 class Particles(pygame.sprite.Sprite):
+    """Частицы пыли"""
+
     orig_pic = load_image('Dust Particle.png')
     orig_pic = pygame.transform.scale(orig_pic, (10, 10))
     orig_side = orig_pic.get_height()
+    # Список изображений с разными размерами
     pictures = [orig_pic,
                 pygame.transform.scale(orig_pic, [orig_side - 5] * 2)]
 
@@ -239,15 +253,18 @@ class Particles(pygame.sprite.Sprite):
         self.image = choice(Particles.pictures)
         self.rect = self.image.get_rect()
 
+        # определение векторов скоростей
         self.x_vel = 0.5 if direction == 'left' else -0.5
         self.y_vel = choice([0, -1])
 
+        # Вылет влево или вправо
         if direction == 'left':
             self.rect.bottomleft = position
         elif direction == 'right':
             self.rect.bottomright = position
 
     def update(self):
+        # Жизнь пыли - 2 кадра
         if self.start_frame == 2:
             self.kill()
             return
@@ -257,6 +274,8 @@ class Particles(pygame.sprite.Sprite):
 
 
 class Checkpoint(pygame.sprite.Sprite):
+    """Чекпоинт"""
+
     width, height = 64, 64
 
     def __init__(self, x, y, name):
@@ -265,8 +284,9 @@ class Checkpoint(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, Checkpoint.width, Checkpoint.height)
         self.image = pygame.Surface((Checkpoint.width, Checkpoint.height))
 
-        self.moving = True
+        self.moving = True  # Флаг, двигаться ли чекпоинту
 
+        # В зависимости от имени генерируются две разные анимации
         if name == 'Start':
             self.stay_anim = pyganim.PygAnimation(cut_sheet(
                 'Checkpoints/Start/Idle.png', 1, 1, anim_delay=100))
@@ -281,11 +301,13 @@ class Checkpoint(pygame.sprite.Sprite):
         self.stay_anim.play()
         self.moving_anim.play()
 
-        self.name = name
+        self.name = name  # Вид чекпоинта (старт или финишь)
 
     def update(self):
         self.image.fill('black')
         self.image.set_colorkey('black')
+
+        # Если анимация подходит к концу (на данный момент последний кадр анимации)
         if self.moving_anim.currentFrameNum + 1 == self.moving_anim.numFrames:
             self.moving = False
         if self.moving:
@@ -305,11 +327,12 @@ class Potion(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(potions_group, all_sprites)
 
-        self.name = choice(['speed', 'damage'])
+        self.name = choice(['speed', 'damage'])  # рандомный выбор вида зелья
         self.rect = pygame.Rect(x + 20, y, Potion.width, Potion.height)
         self.image = pygame.Surface((Potion.width, Potion.height))
-        self.collected = False
+        self.collected = False  # флаг, собрано ли зелье
 
+        # В зависимости от имени генерируются две разные анимации зелья скорости и урона
         if self.name == 'speed':
             self.anim_normal = pyganim.PygAnimation(cut_sheet(
                 f'PotionsSheet.png', 8, 8, anim_delay=500)[8:12])
@@ -342,17 +365,24 @@ class Potion(pygame.sprite.Sprite):
 
     def collect(self):
         """Зелье собрано"""
+
         self.collected = True
         self.anim_collected.play()
 
     def is_collected(self):
+        """Собрать зелье"""
+
         return self.collected
 
     def get_name(self):
         return self.name
 
     def get_boost(self):
+        """Получить значение буста"""
+
         return self.boost
 
     def get_duration(self):
+        """Получение длительности действия зелья"""
+
         return self.duration
