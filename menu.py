@@ -283,7 +283,7 @@ def level_complete_screen(win=True):
     )
     if win:
         next_level = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect(x, y, width, height),
+            relative_rect=pygame.Rect(x + 3 * delta, y, width, height),
             text='',
             tool_tip_text='Нажмите, чтобы перейти к следующему уровню',
             object_id='#next',
