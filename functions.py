@@ -57,7 +57,7 @@ def draw_top_bar():
         return
     player = list(player_group)[0]
     first = (WIDTH - (50 * 4 + 50 * 4 + 250)) // 2
-    screen.blit(pygame.transform.scale(load_image('Heart2.png'), (40, 40)),
+    screen.blit(pygame.transform.scale(load_image('Heart.png'), (40, 40)),
                 (first, TILE_SIDE // 2 - 20))
     screen.blit(font.render(f": {player.get_health()}",
                             True, (0, 252, 123)),

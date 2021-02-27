@@ -107,7 +107,7 @@ class Fruit(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(fruits_group, all_sprites)
 
-        self.rect = pygame.Rect(x, y, Fruit.width, Fruit.height)
+        self.rect = pygame.Rect(x + 20, y, Fruit.width, Fruit.height)
         self.image = pygame.Surface((Fruit.width, Fruit.height))
         self.collected = False
 
@@ -157,12 +157,12 @@ class Backpack(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(fruits_group, all_sprites)
 
-        self.rect = pygame.Rect(x, y, Backpack.width, Backpack.height)
+        self.rect = pygame.Rect(x + 20, y, Backpack.width, Backpack.height)
         self.image = pygame.Surface((Backpack.width, Backpack.height))
         self.collected = False
 
         self.anim_normal = pyganim.PygAnimation(
-            cut_image(pygame.transform.scale(load_image('backpack2.png', -1),
+            cut_image(pygame.transform.scale(load_image('backpack.png', -1),
                                              (Backpack.width,
                                               Backpack.height)),
                       1, 1, anim_delay=100))
@@ -269,14 +269,14 @@ class Checkpoint(pygame.sprite.Sprite):
 
         if name == 'Start':
             self.stay_anim = pyganim.PygAnimation(cut_sheet(
-                'Start/Idle.png', 1, 1, anim_delay=100))
+                'Checkpoints/Start/Idle.png', 1, 1, anim_delay=100))
             self.moving_anim = pyganim.PygAnimation(cut_sheet(
-                'Start/Moving.png', 1, 17, anim_delay=100))
+                'Checkpoints/Start/Moving.png', 1, 17, anim_delay=100))
         elif name == 'End':
             self.stay_anim = pyganim.PygAnimation(cut_sheet(
-                'End/Idle.png', 1, 10, anim_delay=100))
+                'Checkpoints/End/Idle.png', 1, 10, anim_delay=100))
             self.moving_anim = pyganim.PygAnimation(cut_sheet(
-                'End/Moving.png', 1, 26, anim_delay=100))
+                'Checkpoints/End/Moving.png', 1, 26, anim_delay=100))
 
         self.stay_anim.play()
         self.moving_anim.play()
@@ -306,7 +306,7 @@ class Potion(pygame.sprite.Sprite):
         super().__init__(potions_group, all_sprites)
 
         self.name = choice(['speed', 'damage'])
-        self.rect = pygame.Rect(x, y, Potion.width, Potion.height)
+        self.rect = pygame.Rect(x + 20, y, Potion.width, Potion.height)
         self.image = pygame.Surface((Potion.width, Potion.height))
         self.collected = False
 

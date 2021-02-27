@@ -39,6 +39,7 @@ class SoundManager:
     @staticmethod
     def start_sound():
         """Включает звук в игре"""
+        SoundManager.play_menu_music()
         for k, v in SoundManager.sounds.items():
             if k in {'move_on_ground', 'fruit', 'hit', 'potion'}:
                 v.set_volume(0.2)

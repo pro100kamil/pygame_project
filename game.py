@@ -241,7 +241,7 @@ def level_selection_screen():
 
         screen.fill(pygame.Color('#E5D007'))
 
-        font = pygame.font.Font(None, 50)
+        font = pygame.font.SysFont("arial", 50)
         text = font.render("Выберите уровень", True, (0, 0, 0))
         text_x = WIDTH // 2 - text.get_width() // 2
         text_y = 150
@@ -484,7 +484,7 @@ def game():
             if NOW_LEVEL == max_level:
                 with open('level.txt', 'w') as file:
                     file.write(str(NOW_LEVEL + 1))
-            level_complete_screen()
+            level_end_screen()
             return
 
         game_screen.fill(pygame.Color("light blue"))
