@@ -471,7 +471,7 @@ def game():
             # после окончания игры удаляем спрайты
             for sprite in all_sprites:
                 sprite.kill()
-            SoundManager.play_victory()
+            sound_manager.play_victory()
             with open('level.txt') as file:
                 max_level = int(file.read())
             if NOW_LEVEL == max_level:
