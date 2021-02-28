@@ -73,7 +73,7 @@ def draw_top_bar():
     screen.blit(pygame.transform.scale(load_image('Heart.png'), (40, 40)),
                 (first, TILE_SIDE // 2 - 20))
     # Отображение HP героя
-    screen.blit(font.render(f": {player.get_health()}",
+    screen.blit(font.render(f"{player.get_health()}",
                             True, (255, 255, 255)),
                 (first + 50, TILE_SIDE // 2 - 10))
     # Изображение сюрикена
@@ -81,7 +81,7 @@ def draw_top_bar():
                                        (36, 36)),
                 (first + 110, TILE_SIDE // 2 - 18))
     # Отображение кол-ва сюрикенов
-    screen.blit(font.render(f": {player.get_number_shurikens()}",
+    screen.blit(font.render(f"{player.get_number_shurikens()}",
                             True, (255, 255, 255)),
                 (first + 160, TILE_SIDE // 2 - 10))
     # Изображение Зелья скорости

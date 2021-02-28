@@ -19,8 +19,8 @@ KOL_LEVELS = 8  # количество уровней
 # параметры героев (урон, скорость, здоровье)
 hero_parameters = namedtuple('hero_parameters', 'damage speed health')
 # name: (damage, speed, health)
-heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
-          'Pink Man': hero_parameters(20, 5.5, 120),
+HEROES = {'Ninja Frog': hero_parameters(15, 6, 100),
+          'Pink Man': hero_parameters(20, 5, 120),
           'Virtual Guy': hero_parameters(15, 7, 95),
           'Mask Dude': hero_parameters(15, 6, 100)}
 
@@ -39,11 +39,3 @@ spikes_group = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 
 sound_manager = SoundManager()  # звуковой класс
-
-# Параметры героев
-HERO_PARAMETERS = namedtuple('hero_parameters', 'damage speed health')
-# name: (damage, speed, health)
-HEROES = {'Ninja Frog': HERO_PARAMETERS(15, 7, 100),
-          'Pink Man': HERO_PARAMETERS(20, 4, 120),
-          'Virtual Guy': HERO_PARAMETERS(15, 6, 95),
-          'Mask Dude': HERO_PARAMETERS(15, 5, 100)}
