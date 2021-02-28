@@ -128,13 +128,7 @@ def menu_screen():
                         print('PLAY')
                         level_selection_screen()
                     elif event.ui_element == volume:
-                        SoundManager.sound = not SoundManager.sound
-                        if SoundManager.sound:
-                            print('Звук включён')
-                            sound_manager.start_sound()
-                        else:
-                            print('Звук выключен')
-                            sound_manager.remove_sound()
+                        sound_manager.switch()
                 # крестик или cancel в диалоговом окне
                 elif event.user_type == pygame_gui.UI_WINDOW_CLOSE:
                     dialog = None
@@ -439,11 +433,11 @@ def game():
                 elif event.key == pygame.K_p:
                     pause = not pause
                     if pause:
-                        sound_manager.pause_music()
+                        sound_manager.mute_all_sounds()
                         last_pause = pygame.time.get_ticks()
                     else:
                         # Добавление упущенного во время паузы времени
-                        sound_manager.unpause_music()
+                        sound_manager.start_sound()
                         player.add_paused_time(
                             pygame.time.get_ticks() - last_pause)
                 elif event.key == pygame.K_ESCAPE:

@@ -59,8 +59,7 @@ class MainHero(BaseHero):
         self.boost_duration = 0  # Длительность буста текущего зелья
 
         # Хранения информации о бустах, в виде JSON
-        # Время последнего сбора буста (last_boost),
-        # нужно для вычисления остатка действия зелья
+        # Время последнего сбора буста (last_boost), нужно для вычисления остатка действия зелья
         # boost_duration - время действия буста
         # effect - метод, который изменяет параметры ГГ
         self.boosts = {'damage': {'boost_duration': 0, 'last_boost': 0,
@@ -470,40 +469,46 @@ class MainHero(BaseHero):
                 self.make_dust_particles()
                 sound_manager.play_move_on_ground()
 
-        if flag_anim:  # нет передвижения по оси x, тогда скорость
+        if flag_anim:  # нет передвижения по оси x, тогда скорость по х обнуляется
             self.x_vel = 0
 
+        # Нажата клавиша стрелки вверх
         if pygame.key.get_pressed()[pygame.K_UP]:
             if self.on_ground:
+                # Если гг был на земле
                 self.on_ground = False
-                self.y_vel = -self.height_jump
-                self.jump = pygame.time.get_ticks()
+                self.y_vel = -self.height_jump  # скорость по у равна скорости прыжка
+                self.jump = pygame.time.get_ticks()  # Время последнего прыжка
                 # Флаг - отжата ли клавиша "вверх"
+                # Клавиша вверх становится не отжатой (нужно для двойного прыжка)
                 self.key_up_is_raised = False
-                sound_manager.play_jump()
+                sound_manager.play_jump()  # Звук прыжка
             # Если герой не на земле, клавиша вверх отжата,
-            # и прошло меньше 1500 мс после прыжка
+            # и прошло меньше 1500 мс после прыжка, тогда герой подпрыгивает в воздухе еще раз
             elif self.key_up_is_raised and self.jump and now - self.jump < 1500:
                 self.double_jump = True
                 self.y_vel = -self.height_jump
                 self.jump = False
                 # Сбрасываем анимацию двойного прыжка
                 self.animations['double_jump'].stop()
-                sound_manager.play_jump()
+                sound_manager.play_jump()  # звук прыжка
         else:
+            # если же была нажата клавиша отлична от стрелки вверх,
+            # то клавиша вверх становится отжатой
             self.key_up_is_raised = True
         # Если нажата клавиша вниз, то сбивается весь прыжок
         if pygame.key.get_pressed()[pygame.K_DOWN]:
             self.jump = False
-            if not self.on_ground:
+            if not self.on_ground:  # И герой падает с большим ускорением вниз
                 self.y_vel = 1.4 * self.height_jump
 
+        # нажата клавиша стрелки вверх и не нажата в это время стрелка вниз, то происохдит
         if pygame.key.get_pressed()[pygame.K_SPACE] \
                 and not pygame.key.get_pressed()[pygame.K_DOWN]:
             if self.on_ground:
-                self.on_ground = False
-                self.y_vel = -1.4 * self.height_jump
-                self.double_jump = True
+                self.on_ground = False  # Герой оказывается не на земле
+                self.y_vel = -1.4 * self.height_jump  # Подскок вверх
+                self.double_jump = True  #
                 # Сбрасываем анимацию двойного прыжка
                 self.animations['double_jump'].stop()
                 sound_manager.play_jump()
@@ -521,13 +526,16 @@ class MainHero(BaseHero):
 
     def attack(self):
         """Атака героя сюрикеном"""
+
+        # Если сюрикены вообще имеются
         if self.number_shurikens:
+            # Появляется спрайт сюрикена
             Shuriken(self.rect.right - 20
                      if self.direction == "right" else self.rect.left,
                      self.rect.top, self.direction).move()
             self.number_shurikens -= 1
 
-            sound_manager.play_shuriken()
+            sound_manager.play_shuriken()  # звук вылета сюрикена
 
     def defeat(self):
         """Поражение героя"""
@@ -536,17 +544,18 @@ class MainHero(BaseHero):
 
         self.rect = self.rect.move(self.x_vel, self.y_vel)
 
+        # Начинаем анимацию получения урона
         frame = self.animations['hit'].getCurrentFrame()
         if self.animations['hit'].currentFrameNum + 1 == \
                 self.animations['hit'].numFrames:
-            self.animations['hit'].pause()
+            self.animations['hit'].pause()  # анимация завершилась
         else:
             self.animations['hit'].play()
 
         # Меняем rect при вращении изображения героя
         old_center = self.rect.center
         self.image = pygame.transform.rotate(frame, self.angle)
-        self.image.set_alpha(self.transparency)
+        self.image.set_alpha(self.transparency)  # уменьшение прозрачности
         self.rect = self.image.get_rect()
         self.rect.center = old_center
 
@@ -558,12 +567,17 @@ class MainHero(BaseHero):
             self.kill()
 
     def make_dust_particles(self):
+        """Создание частиц пыли"""
+
+        # вычисление координат, в какую сторону вылетать частицам
         x = self.rect.bottomright[0] - 9 if self.direction == 'left' \
             else self.rect.bottomleft[0] + 9
         y = self.rect.bottomleft[1] + 2
         Particles(self.direction, (x, y))
 
     def rest_of_boost(self, name) -> str:
+        """Остаток времени действия зелья"""
+
         if not self.boosts[name]['last_boost']:
             return '0'
         return str(ceil((self.boosts[name]['boost_duration'] -
@@ -571,12 +585,17 @@ class MainHero(BaseHero):
                              'last_boost'])) / 1000))
 
     def set_speed(self, speedup):
+        """Установка новой скорости ГГ"""
+
         self.speed = self.last_speed + speedup
 
     def set_damage(self, delta_damage):
+        """Установка нового урона ГГ"""
+
         self.damage = self.last_damage + delta_damage
 
     def add_paused_time(self, time):
         """Добавление к каждому бусту время паузы"""
+
         for name in self.boosts:
             self.boosts[name]['last_boost'] += time
