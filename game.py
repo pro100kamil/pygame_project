@@ -30,23 +30,22 @@ def menu_screen():
 
     sound_manager.play_menu_music()
 
-    dialog = None  # текущее открытое диалоговое окно
+    dialog = None  # текущее открытое диалговое окно
 
     pygame.display.set_caption('Меню')
-
-    list_heroes = list(heroes.keys())
-    now = 0  # индекс текущего героя
+    list_heroes = list(HEROES.keys())
+    now = 0
     MAIN_HERO = list_heroes[now]
     # координаты и размер изображения главного героя
     size_hero_image = 300, 300
     coord_hero_image = (WIDTH - size_hero_image[0]) // 2, 50
     image = pygame.transform.scale(load_image("for menu/Ninja Frog.png"),
                                    size_hero_image)
-
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
-    # расставляем кнопки и лейблы
-    width, height = 31, 33
-    x, y = coord_hero_image[0] + (size_hero_image[0] - width) // 2, 10
+    width = 31
+    height = 33
+    x = coord_hero_image[0] + (size_hero_image[0] - width) // 2
+    y = 10
     volume = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(x, y, width, height),
         text='',
@@ -55,7 +54,8 @@ def menu_screen():
         manager=manager
     )
 
-    width, height = 180, 50
+    width = 180
+    height = 50
     x = coord_hero_image[0] + (size_hero_image[0] - width) // 2
     y = coord_hero_image[1] + size_hero_image[1] + 20
     name_label = pygame_gui.elements.UILabel(
@@ -65,21 +65,22 @@ def menu_screen():
     )
     damage_label = pygame_gui.elements.UILabel(
         relative_rect=pygame.Rect(x, y + height, width, height),
-        text=f'Урон: {heroes["Ninja Frog"].damage}',
+        text=f'Урон: {HEROES["Ninja Frog"].damage}',
         manager=manager
     )
     speed_label = pygame_gui.elements.UILabel(
         relative_rect=pygame.Rect(x, y + 2 * height, width, height),
-        text=f'Скорость: {heroes["Ninja Frog"].speed}',
+        text=f'Скорость: {HEROES["Ninja Frog"].speed}',
         manager=manager
     )
     health_label = pygame_gui.elements.UILabel(
         relative_rect=pygame.Rect(x, y + 3 * height, width, height),
-        text=f'Жизни: {heroes["Ninja Frog"].health}',
+        text=f'Жизни: {HEROES["Ninja Frog"].health}',
         manager=manager
     )
 
-    width_play, height_play = 200, 80
+    width_play = 200
+    height_play = 80
     play = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(WIDTH // 3 + (WIDTH // 3 - width_play) // 2,
                                   y + 4 * height + 40, width_play,
@@ -107,7 +108,6 @@ def menu_screen():
                     level_selection_screen()
                     continue
                 elif event.key == pygame.K_ESCAPE:
-                    # чтобы не открывалось несколько диалогов
                     if dialog is None:
                         dialog = exit_warning(manager)
                 MAIN_HERO = list_heroes[now]
@@ -115,11 +115,11 @@ def menu_screen():
                     load_image(f"for menu/{MAIN_HERO}.png"), size_hero_image)
                 name_label.set_text(MAIN_HERO)
                 damage_label.set_text(
-                    f'Урон: {heroes[MAIN_HERO].damage}')
+                    f'Урон: {HEROES[MAIN_HERO].damage}')
                 speed_label.set_text(
-                    f'Скорость: {heroes[MAIN_HERO].speed}')
+                    f'Скорость: {HEROES[MAIN_HERO].speed}')
                 health_label.set_text(
-                    f'Жизни: {heroes[MAIN_HERO].health}')
+                    f'Жизни: {HEROES[MAIN_HERO].health}')
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     terminate()
@@ -128,13 +128,7 @@ def menu_screen():
                         print('PLAY')
                         level_selection_screen()
                     elif event.ui_element == volume:
-                        SoundManager.sound = not SoundManager.sound
-                        if SoundManager.sound:
-                            print('Звук включён')
-                            sound_manager.start_sound()
-                        else:
-                            print('Звук выключен')
-                            sound_manager.remove_sound()
+                        sound_manager.switch()
                 # крестик или cancel в диалоговом окне
                 elif event.user_type == pygame_gui.UI_WINDOW_CLOSE:
                     dialog = None
@@ -157,10 +151,7 @@ def level_selection_screen():
     """Открывает окно выбора уровня и возращает номер выбранного уровня"""
     global NOW_LEVEL
     pygame.display.set_caption('Выберите уровень')
-
-    dialog = None  # текущее открытое диалоговое окно
-
-    images = []  # изображения номеров уровней
+    images = []
     size = 80, 80
     for i in range(1, KOL_LEVELS + 1):
         images.append(pygame.transform.scale(
@@ -178,9 +169,11 @@ def level_selection_screen():
         rects.append(pygame.Rect(x, y, *size))
 
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
-    # расставляем кнопки и лейблы
-    width, height = 31, 33
-    x, y = 10, 10
+
+    width = 31
+    height = 33
+    x = 10
+    y = 10
     back = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(x, y, width, height),
         text='',
@@ -208,17 +201,15 @@ def level_selection_screen():
                                     game()
                                     return
                                 else:
-                                    # чтобы не открывалось несколько диалогов
-                                    if dialog is None:
-                                        # окно с предупреждением
-                                        dialog = pygame_gui.windows.UIMessageWindow(
-                                            rect=pygame.Rect(
-                                                WIDTH // 2 - 150,
-                                                HEIGHT // 2 + 150, 300, 300),
-                                            html_message='Этот уровень вам '
-                                                         'недоступен',
-                                            manager=manager
-                                        )
+                                    # окно с предупреждением
+                                    pygame_gui.windows.UIMessageWindow(
+                                        rect=pygame.Rect(
+                                            WIDTH // 2 - 150,
+                                            HEIGHT // 2 + 150, 300, 300),
+                                        html_message='Этот уровень вам '
+                                                     'недоступен',
+                                        manager=manager
+                                    )
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pygame.display.set_caption('Меню')
@@ -228,9 +219,6 @@ def level_selection_screen():
                     if event.ui_element == back:
                         pygame.display.set_caption('Меню')
                         running = False
-                # крестик или cancel в диалоговом окне
-                elif event.user_type == pygame_gui.UI_WINDOW_CLOSE:
-                    dialog = None
             manager.process_events(event)
 
         manager.update(time_delta)
@@ -256,13 +244,15 @@ def level_selection_screen():
 
 
 def level_end_screen(win=True):
-    """Открывает окно после выигрыша/проигрыша/прохождения игры"""
+    """Открывает окно после прохождения/проигрыша"""
     global NOW_LEVEL
 
     manager = pygame_gui.UIManager(SIZE, 'styles/style.json')
-    # расставляем кнопки и лейблы
-    width, height = 31, 33
-    x, y = 10, 10
+
+    width = 31
+    height = 33
+    x = 10
+    y = 10
     delta = 40
     back = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect(x, y, width, height),
@@ -285,10 +275,7 @@ def level_end_screen(win=True):
         object_id='#restart',
         manager=manager
     )
-
     if win and NOW_LEVEL != KOL_LEVELS:
-        # кнопка следующий уровень есть только тогда, когда пользователь
-        # прошёл уровень, который не является последним
         next_level = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect(x + 3 * delta, y, width, height),
             text='',
@@ -332,7 +319,7 @@ def level_end_screen(win=True):
 
         font = pygame.font.SysFont("arial", 70)
         text = font.render(("Уровень пройден!" if NOW_LEVEL != KOL_LEVELS
-                            else "Поздравляем! Вы прошли игру!")
+                           else "Поздравляем! Вы прошли игру!")
                            if win else "Вы проиграли",
                            True, (0, 0, 0))
         text_x = WIDTH // 2 - text.get_width() // 2
@@ -362,7 +349,7 @@ def load_level(filename):
                  'o': AngryPig, 'h': Chameleon, 'r': Rino, 'p': Plant,
                  'q': Plant,
                  '*': Fruit, '?': Potion, '+': Backpack
-                 }  # обозначения
+                 }
 
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
@@ -392,7 +379,6 @@ def load_level(filename):
 
 
 def game():
-    """Открывает основное окно"""
     with open('level.txt') as file:
         # уровень, на котором остановился игрок (этот уровень ещё не пройден)
         max_level = int(file.read())
@@ -413,6 +399,7 @@ def game():
     dialog = None  # текущее открытое диалговое окно
 
     player, level_x, level_y = load_level(f'level{NOW_LEVEL}.txt')
+    # player, level_x, level_y = load_level(f'map.txt', MAIN_HERO)
 
     camera = Camera(level_x, level_y)
 
@@ -439,11 +426,11 @@ def game():
                 elif event.key == pygame.K_p:
                     pause = not pause
                     if pause:
-                        sound_manager.pause_music()
+                        sound_manager.mute_all_sounds()
                         last_pause = pygame.time.get_ticks()
                     else:
                         # Добавление упущенного во время паузы времени
-                        sound_manager.unpause_music()
+                        sound_manager.start_sound()
                         player.add_paused_time(
                             pygame.time.get_ticks() - last_pause)
                 elif event.key == pygame.K_ESCAPE:
@@ -453,7 +440,7 @@ def game():
                     else:
                         pause = True
                         last_pause = pygame.time.get_ticks()
-                        # чтобы не открывалось несколько диалогов
+                        # чтобы не открывалось несколько диалогово
                         if dialog is None:
                             dialog = exit_warning(manager,
                                                   'Вы уверены, что хотите выйти? '
@@ -509,8 +496,7 @@ def game():
                                                                       MainHero):
                 game_screen.blit(sprite.image, camera.apply(sprite))
 
-        # рисуем врагов и героя отдельно,
-        # чтобы они были над другими текстурами
+        # рисуем врагов отдельно, чтобы они не были над другими текстурами
         for sprite in enemies_group:
             game_screen.blit(sprite.image, camera.apply(sprite))
 

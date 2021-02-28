@@ -1,10 +1,13 @@
 from pygame.mixer import Sound, music
 from pygame import mixer
 
+
 mixer.init()
 
 
 class SoundManager:
+    """Звуковой менеджер"""
+
     sounds = {'shuriken': Sound('sounds/shuriken_flight.mp3'),
 
               'hit': Sound('sounds/hit.wav'),
@@ -31,129 +34,135 @@ class SoundManager:
 
               'victory': Sound('sounds/sound_victory.wav')}
 
-    sounds['move_on_ground'].set_volume(0.2)
-    sounds['fruit'].set_volume(0.2)
-    sounds['hit'].set_volume(0.2)
-    sounds['potion'].set_volume(0.2)
+    def __init__(self):
+        self.sound = True  # Изначально звук включен
+        self.sounds['move_on_ground'].set_volume(0.2)
+        self.sounds['fruit'].set_volume(0.2)
+        self.sounds['hit'].set_volume(0.2)
+        self.sounds['potion'].set_volume(0.2)
 
-    # есть ли в игре сейчас звук
-    sound = True  # вначале звук включён
+    def switch(self):
+        """Смена режима звука (включен / выключен)"""
+        self.sound = not self.sound
 
-    @staticmethod
-    def start_sound():
-        """Включает звук в игре"""
-        music.set_volume(0)
-        SoundManager.play_menu_music()
-        for k, v in SoundManager.sounds.items():
+        if self.sound:
+            self.start_sound()
+        else:
+            self.mute_all_sounds()
+
+    def start_sound(self):
+        """Включение звука в игре"""
+
+        music.unpause()
+        for k, v in self.sounds.items():
             if k in {'move_on_ground', 'fruit', 'hit', 'potion'}:
                 v.set_volume(0.2)
             else:
                 v.set_volume(1)
 
-    @staticmethod
-    def remove_sound():
-        """Отключает звук в игре"""
-        music.set_volume(0)
-        for v in SoundManager.sounds.values():
+    def mute_all_sounds(self):
+        """Отключение звука в игре"""
+
+        music.pause()
+        for v in self.sounds.values():
             v.set_volume(0)
 
-    @staticmethod
-    def play_shuriken():
-        SoundManager.sounds['shuriken'].play()
+    def play_shuriken(self):
+        """Проигрывание звука сюрикена"""
 
-    @staticmethod
-    def play_hit():
-        SoundManager.sounds['hit'].play()
+        self.sounds['shuriken'].play()
 
-    @staticmethod
-    def play_fruit_collected():
-        SoundManager.sounds['fruit'].play()
+    def play_hit(self):
+        """Проигрывание звука: ГГ ударил врага"""
 
-    @staticmethod
-    def play_backpack_collected():
-        SoundManager.sounds['backpack'].play()
+        self.sounds['hit'].play()
 
-    @staticmethod
-    def fade_out_music(time: int):
-        music.fadeout(time)
+    def play_fruit_collected(self):
+        """Проигрывание звука собранного фрукта"""
 
-    @staticmethod
-    def pause_music():
-        music.pause()
+        self.sounds['fruit'].play()
 
-    @staticmethod
-    def unpause_music():
-        music.unpause()
+    def play_backpack_collected(self):
+        """Проигрывание звука собранного рюкзака"""
 
-    @staticmethod
-    def play_music():
-        music.play()
+        self.sounds['backpack'].play()
 
-    @staticmethod
-    def play_got_hit():
-        SoundManager.sounds['got_hit'].play()
+    def play_got_hit(self):
+        """Проигрывание звука: враг ударил ГГ"""
 
-    @staticmethod
-    def play_move_on_ground():
-        if SoundManager.sounds['move_on_ground'].get_num_channels() == 0:
-            SoundManager.sounds['move_on_ground'].play()
+        self.sounds['got_hit'].play()
 
-    @staticmethod
-    def play_jump():
-        SoundManager.sounds['jump'].play()
+    def play_move_on_ground(self):
+        """Проигрывание звука шагов ГГ"""
 
-    @staticmethod
-    def play_land():
-        SoundManager.sounds['land'].play()
+        if self.sounds['move_on_ground'].get_num_channels() == 0:
+            self.sounds['move_on_ground'].play()
 
-    @staticmethod
-    def play_potion_collected():
-        SoundManager.sounds['potion'].play()
+    def play_jump(self):
+        """Проигрывание звука прыжка ГГ"""
 
-    @staticmethod
-    def play_voice_game_over():
-        if SoundManager.sounds['game_over_sound'].get_num_channels() == 0:
-            SoundManager.sounds['game_over_voice'].play()
+        self.sounds['jump'].play()
 
-    @staticmethod
-    def play_sound_game_over():
-        mixer.music.stop()
-        SoundManager.sounds['game_over_sound'].play()
+    def play_land(self):
+        """Проигрывание звука приземления ГГ"""
 
-    @staticmethod
-    def play_game_over():
-        mixer.music.fadeout(500)
-        SoundManager.sounds['game_over'].play()
+        self.sounds['land'].play()
 
-    @staticmethod
-    def play_menu_music():
-        if SoundManager.sound:
-            for sound in SoundManager.sounds.values():
+    def play_potion_collected(self):
+        """Проигрывание звука собранного зелья"""
+
+        self.sounds['potion'].play()
+
+    def play_voice_game_over(self):
+        """Проигрывание голоса "Game Over" при проигрыше уровня"""
+
+        if self.sounds['game_over_sound'].get_num_channels() == 0:
+            self.sounds['game_over_voice'].play()
+
+    def play_sound_game_over(self):
+        """Проигрывание мелодии при проигрыше уровня"""
+
+        music.stop()
+        self.sounds['game_over_sound'].play()
+
+    def play_game_over(self):
+        """Проигрывание мелодии и голоса вместе при проигрыше уровня"""
+
+        music.fadeout(500)
+        self.sounds['game_over'].play()
+
+    def play_menu_music(self):
+        """Проигрывание музыки во время нахождения в меню"""
+
+        if self.sound:
+            for sound in self.sounds.values():
                 sound: Sound
                 sound.stop()
-            mixer.music.fadeout(500)
-            mixer.music.unload()
-            mixer.music.load('music/background.mp3')
-            mixer.music.set_volume(1)
-            mixer.music.play(-1)
+            music.unpause()
+            music.unload()
+            music.load('music/background.mp3')
+            music.set_volume(1)
+            music.play(-1)
 
-    @staticmethod
-    def play_game_music():
-        print(SoundManager.sound)
-        if SoundManager.sound:
-            for sound in SoundManager.sounds.values():
+    def play_game_music(self):
+        """Проигрывание музыки во время нахождения в игре"""
+
+        if self.sound:
+            for sound in self.sounds.values():
                 sound: Sound
                 sound.stop()
-            mixer.music.fadeout(500)
-            mixer.music.unload()
-            mixer.music.load('music/background_tango_short.wav')
-            music.set_volume(0.3)
-            mixer.music.play(-1)
 
-    @staticmethod
-    def play_victory():
-        mixer.music.fadeout(500)
-        SoundManager.sounds['victory'].play()
+            music.unpause()
+            music.unload()
+            music.load('music/background_tango_short.wav')
+            music.set_volume(0.1)
+            music.play(-1)
+
+    def play_victory(self):
+        """Проигрывание мелодии при успешном прохождении уровня"""
+
+        music.fadeout(500)
+        self.sounds['victory'].play()
 
     def update(self):
         pass

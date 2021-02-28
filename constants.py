@@ -1,9 +1,9 @@
 from collections import namedtuple
 import pygame
-import pygame_gui
 from sound_manager import SoundManager
+from collections import namedtuple
 
-TILE_SIDE = 50
+TILE_SIDE = 50  # размер одной клетки
 SIZE = WIDTH, HEIGHT = 1000, 700  # размер игрового окна
 FPS = 30
 GRAVITY = 12 / FPS
@@ -31,10 +31,19 @@ bullets_group = pygame.sprite.Group()
 checkpoints = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 fruits_group = pygame.sprite.Group()
+backpacks_group = pygame.sprite.Group()
 enemies_group = pygame.sprite.Group()
 potions_group = pygame.sprite.Group()
 chameleons = pygame.sprite.Group()
 spikes_group = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 
-sound_manager = SoundManager()
+sound_manager = SoundManager()  # звуковой класс
+
+# Параметры героев
+HERO_PARAMETERS = namedtuple('hero_parameters', 'damage speed health')
+# name: (damage, speed, health)
+HEROES = {'Ninja Frog': HERO_PARAMETERS(15, 7, 100),
+          'Pink Man': HERO_PARAMETERS(20, 4, 120),
+          'Virtual Guy': HERO_PARAMETERS(15, 6, 95),
+          'Mask Dude': HERO_PARAMETERS(15, 5, 100)}
