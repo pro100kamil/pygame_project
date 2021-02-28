@@ -158,7 +158,7 @@ class Backpack(pygame.sprite.Sprite):
     width, height = 32, 32
 
     def __init__(self, x, y):
-        super().__init__(fruits_group, all_sprites)
+        super().__init__(backpacks_group, all_sprites)
 
         self.rect = pygame.Rect(x + 20, y, Backpack.width, Backpack.height)
         self.image = pygame.Surface((Backpack.width, Backpack.height))

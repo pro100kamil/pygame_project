@@ -23,7 +23,7 @@ class Enemy(pygame.sprite.Sprite):
         self.got_hit = False  # В "шоке" ли враг
         self.animations = None  # Набор анимаций
         self.transparency = 255  # Прозрачность спрайта
-        self.angle = 0  # Угол поворота спрайта
+        self.angle = 0  # Угол поворота спрайта (нужен для анимации смерти)
         self.mask = None
         # Максимальное расстояние от точки спавна
         self.max_length = 0
@@ -147,6 +147,8 @@ class Bunny(Enemy):
             anim.play()
 
     def collide(self):
+        """Обработка столкновений с платформами"""
+
         for platform in pygame.sprite.spritecollide(self, platforms, False):
             # Если враг соприкоснулся с платформой и вектор скорости по у был больше нуля,
             # значит приземлился на платформу
@@ -216,6 +218,8 @@ class WalkingEnemy(Enemy):
         self.damage = damage  # урон, который наносит враг при атаке
 
     def collide(self):
+        """Обработка столкновений с платформами"""
+
         # если не на земле, то падает, пока не приземлится
         if not self.on_ground:
             check_on_ground = pygame.sprite.spritecollideany(self, platforms)
@@ -391,7 +395,7 @@ class Chameleon(Enemy):
         # происходит отдельного хитбокса для обозначения тела хамелеона
         self.rect2 = pygame.Rect(x + 38, y, 38, 38)
 
-        self.speed = 3  # Скорость
+        self.speed = 6  # Скорость
         self.x_vel, self.y_vel = -self.speed, 0
 
         self.health = 50  # количество жизней
@@ -439,6 +443,8 @@ class Chameleon(Enemy):
             anim.flip(True, False)
 
     def collide(self):
+        """Обработка столкновений с платформами"""
+
         # Хамелеон падает, пока в воздухе
         if not self.on_ground:
             check_on_ground = pygame.sprite.spritecollideany(self, platforms)
@@ -567,6 +573,8 @@ class Rino(Enemy):
             anim.flip(True, False)
 
     def collide(self):
+        """Обработка столкновений с платформами"""
+
         # если носорог в воздухе, он падает до соприкосновения с платформами
         if not self.on_ground:
             check_on_ground = pygame.sprite.spritecollideany(self, platforms)
