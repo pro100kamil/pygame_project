@@ -1,16 +1,8 @@
-from collections import namedtuple
 from math import ceil
 
 from enemy import *
 from some_classes import *
 from weapon import Shuriken
-
-hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-# name: (damage, speed, health)
-heroes = {'Ninja Frog': hero_parameters(15, 7, 100),
-          'Pink Man': hero_parameters(20, 4, 120),
-          'Virtual Guy': hero_parameters(15, 6, 95),
-          'Mask Dude': hero_parameters(15, 5, 100)}
 
 
 class BaseHero(pygame.sprite.Sprite):

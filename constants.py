@@ -1,3 +1,4 @@
+from collections import namedtuple
 import pygame
 import pygame_gui
 from sound_manager import SoundManager
@@ -14,6 +15,14 @@ game_screen = pygame.Surface(SIZE)
 MAIN_HERO = None
 NOW_LEVEL = None
 KOL_LEVELS = 8  # количество уровней
+
+# параметры героев (урон, скорость, здоровье)
+hero_parameters = namedtuple('hero_parameters', 'damage speed health')
+# name: (damage, speed, health)
+heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
+          'Pink Man': hero_parameters(20, 5.5, 120),
+          'Virtual Guy': hero_parameters(15, 7, 95),
+          'Mask Dude': hero_parameters(15, 6, 100)}
 
 clock = pygame.time.Clock()
 # группы спрайтов
