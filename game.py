@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 import pygame_gui
 
 from enemy import *
@@ -35,13 +33,7 @@ def menu_screen():
     dialog = None  # текущее открытое диалговое окно
 
     pygame.display.set_caption('Меню')
-    hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-    # name: (damage, speed, health)
-    heroes = {'Ninja Frog': hero_parameters(15, 6, 100),
-              'Pink Man': hero_parameters(20, 4, 120),
-              'Virtual Guy': hero_parameters(15, 7, 95),
-              'Mask Dude': hero_parameters(15, 6, 100)}
-    list_heroes = list(heroes.keys())
+    list_heroes = list(HEROES.keys())
     now = 0
     MAIN_HERO = list_heroes[now]
     # координаты и размер изображения главного героя
@@ -73,17 +65,17 @@ def menu_screen():
     )
     damage_label = pygame_gui.elements.UILabel(
         relative_rect=pygame.Rect(x, y + height, width, height),
-        text=f'Урон: {heroes["Ninja Frog"].damage}',
+        text=f'Урон: {HEROES["Ninja Frog"].damage}',
         manager=manager
     )
     speed_label = pygame_gui.elements.UILabel(
         relative_rect=pygame.Rect(x, y + 2 * height, width, height),
-        text=f'Скорость: {heroes["Ninja Frog"].speed}',
+        text=f'Скорость: {HEROES["Ninja Frog"].speed}',
         manager=manager
     )
     health_label = pygame_gui.elements.UILabel(
         relative_rect=pygame.Rect(x, y + 3 * height, width, height),
-        text=f'Жизни: {heroes["Ninja Frog"].health}',
+        text=f'Жизни: {HEROES["Ninja Frog"].health}',
         manager=manager
     )
 
@@ -123,11 +115,11 @@ def menu_screen():
                     load_image(f"for menu/{MAIN_HERO}.png"), size_hero_image)
                 name_label.set_text(MAIN_HERO)
                 damage_label.set_text(
-                    f'Урон: {heroes[MAIN_HERO].damage}')
+                    f'Урон: {HEROES[MAIN_HERO].damage}')
                 speed_label.set_text(
-                    f'Скорость: {heroes[MAIN_HERO].speed}')
+                    f'Скорость: {HEROES[MAIN_HERO].speed}')
                 health_label.set_text(
-                    f'Жизни: {heroes[MAIN_HERO].health}')
+                    f'Жизни: {HEROES[MAIN_HERO].health}')
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     terminate()

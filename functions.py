@@ -4,8 +4,10 @@ from constants import *
 
 
 def cut_sheet(filename, rows, cols, anim_delay):
-    """Нарека изображения на отдельные кадры для анимации (принимает путь к изображению)"""
+    """Нарезка изображения на отдельные кадры анимации (принимает путь к изображению)"""
 
+    # anim_delay отвечает за скорость смены каждого кадра анимации
+    # Нарезка происходит по кол-ву рядов и столбиков набора кадров
     sheet: pygame.Surface = load_image(filename)
     picture_w, picture_h = sheet.get_width() // cols, sheet.get_height() // rows
     frames = []

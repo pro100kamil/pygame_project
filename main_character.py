@@ -1,16 +1,8 @@
-from collections import namedtuple
 from math import ceil
 
 from enemy import *
 from some_classes import *
 from weapon import Shuriken
-
-hero_parameters = namedtuple('hero_parameters', 'damage speed health')
-# name: (damage, speed, health)
-heroes = {'Ninja Frog': hero_parameters(15, 7, 100),
-          'Pink Man': hero_parameters(20, 4, 120),
-          'Virtual Guy': hero_parameters(15, 6, 95),
-          'Mask Dude': hero_parameters(15, 5, 100)}
 
 
 class BaseHero(pygame.sprite.Sprite):
@@ -39,14 +31,14 @@ class MainHero(BaseHero):
     def __init__(self, x, y, name):
         super().__init__(x, y, MainHero.width, MainHero.height)
         self.direction = "right"
-        self.speed = heroes[name].speed
+        self.speed = HEROES[name].speed
         self.jump, self.x_vel, self.y_vel = 0, 0, 0
         self.height_jump = 10  # показатель высоты прыжка
         self.double_jump = False  # происходит ли сейчас двойной прыжок
         self.got_hit = False  # Время последнего удара
-        self.health = heroes[name].health  # количество жизней
+        self.health = HEROES[name].health  # количество жизней
         # урон, который наносит герой при напрыгивании на врага
-        self.damage = heroes[name].damage
+        self.damage = HEROES[name].damage
 
         self.number_shurikens = 20  # кол-во оставшихся сюрикенов
 
